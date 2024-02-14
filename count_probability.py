@@ -46,7 +46,7 @@ for file_folder in file_folders:
                 'month': df_strike_price_B['month'].iloc[0],
                 'kind': df_strike_price_B['kind'].iloc[0],
                 'strike_price': strike_price,
-                'MTF_BS_CODE': 'B',
+                'MTF_BS_CODE': BS_CODE,
                 'MTF_PROD_ID': df_strike_price['MTF_PROD_ID'].iloc[0],
                 'previous_last_price': previous_last_trade,
                 'last_first_price': last_first_trade,
