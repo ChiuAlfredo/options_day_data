@@ -45,10 +45,10 @@ for txt_file in txt_files:
 # 將所有的dataframe合併成一個
 all_data_df = pd.concat(dataframes, ignore_index=True)
 
-all_data_df.to_csv('all_data.csv', index=False, encoding='utf-8-sig')
+all_data_df.to_parquet('all_data.gzip',compression='gzip')
 
 # %%
-all_data_df = pd.read_csv('all_data.csv', encoding='utf-8-sig')
+all_data_df = pd.read_parquet('all_data.gzip')
 
 # %%
 # 只留下MTD_PROD_ID含有TX的台指期選擇權
