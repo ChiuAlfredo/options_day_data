@@ -122,10 +122,17 @@ import re
 
 # 輸出每一組的數據到一個csv檔案
 for name, group in prod_df:
+
+    # 只輸出2,3,4月的數據
+    
     month = group['month'].iloc[0]
     kind = group['kind'].iloc[0]
     cleaned_name = re.sub('[\W_]+', '', name)
-    filename = f'./data/group/{month}_{kind}.csv'
-    group.to_csv(filename, index=False, encoding='utf-8-sig')
+    filename = f'./data/group/{month}_{kind}'
+    if month in ['2', '3', '4']:
+        group.to_parquet(f'{filename}.gzip',compression='gzip', index=False)
+        group.to_csv(f'{filename}.csv', index=False, encoding='utf-8-sig')
+    else:
+        continue
 
 
