@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 import os
-import draw_util
+import util.draw_util as draw_util
 
 
 # 獲取 ./data/group 中的所有檔案名稱
