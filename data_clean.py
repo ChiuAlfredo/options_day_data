@@ -84,6 +84,12 @@ all_data_df['month'] = all_data_df['month_alpha'].map(alpha_to_month)
 # 轉換month為字串
 all_data_df['month'] = all_data_df['month'].astype(int).astype(str)
 
+#%%
+# 新增選擇權買賣權欄位
+alpha_to_kind = {char: 'C' for char in 'ABCDEFGHIJKL'}
+alpha_to_kind.update({char: 'P' for char in 'MNOPQRSTUVWX'})
+
+all_data_df['kind'] = all_data_df['month_alpha'].map(alpha_to_kind)
 
 # %%
 # 將MTF_DATE和MTF_ORIG_TIME欄位的數據轉換為字串格式
@@ -95,11 +101,13 @@ all_data_df['datetime'] = all_data_df['MTF_DATE'] + ' ' + all_data_df['MTF_ORIG_
 
 # 將datetime欄位的數據轉換為日期時間格式
 all_data_df['datetime'] = pd.to_datetime(all_data_df['datetime'], format='%Y%m%d %H:%M:%S.%f')
+all_data_df['MTF_DATE'] = pd.to_datetime(all_data_df['MTF_DATE'], format='%Y%m%d')
+# all_data_df['MTF_ORIG_TIME'] = pd.to_datetime(all_data_df['MTF_ORIG_TIME'], format='%H:%M:%S.%f')
 
 
 # %%
 # 選擇要保留的欄位
-all_data_df = all_data_df[['MTF_DATE', 'MTF_PROD_ID', 'MTF_BS_CODE', 'MTF_PRICE', 'MTF_QNTY', 'MTF_OC_CODE', 'strike_price', 'month_alpha', 'month', 'datetime']]
+all_data_df = all_data_df[['MTF_DATE', 'MTF_PROD_ID', 'MTF_BS_CODE', 'MTF_PRICE', 'MTF_QNTY', 'MTF_OC_CODE', 'strike_price', 'month_alpha', 'month', 'datetime','kind']]
 
 # %%
 # MTF_PROD_ID分群
@@ -115,9 +123,9 @@ import re
 # 輸出每一組的數據到一個csv檔案
 for name, group in prod_df:
     month = group['month'].iloc[0]
-    MTF_BS_CODE = group['MTF_BS_CODE'].iloc[0]
+    kind = group['kind'].iloc[0]
     cleaned_name = re.sub('[\W_]+', '', name)
-    filename = f'./data/group/{month}_{MTF_BS_CODE}.csv'
+    filename = f'./data/group/{month}_{kind}.csv'
     group.to_csv(filename, index=False, encoding='utf-8-sig')
 
 
