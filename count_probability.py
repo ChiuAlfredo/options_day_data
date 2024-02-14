@@ -1,7 +1,7 @@
 # %%
 import pandas as pd
 import os
-import count_util
+import util.count_util as count_util
 
 # 獲取 ./data/group 中的所有檔案名稱
 file_folders = [os.path.splitext(file)[0] for file in os.listdir('./data/group') if file.endswith('.csv')]
