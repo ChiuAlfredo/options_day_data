@@ -69,10 +69,6 @@ df_info['previous_last_day_change'] = (df_info['last_first_price'] - df_info['pr
 
 df_info.sort_values(by=['month', 'kind', 'strike_price'], inplace=True)
 df_info.to_csv('df_info.csv', index=False, encoding='utf-8-sig')
-        
-
-
-
 #%%
 # review 
 TX_df = pd.read_csv('TX2-4.csv',encoding='utf-8',sep='\t')
@@ -105,5 +101,33 @@ for name, group in TX_group:
 
 new_TX_df.to_csv('TX_last3day.csv', index=False, encoding='utf-8-sig')
 
-                
+
+#%% 
+import matplotlib.pyplot as plt
+prob_list = []
+for i in range(0,200,20):
+    mask = df_info['previous_last_day_change'] >= i
+
+    # Calculate the proportion
+    proportion = mask.sum() / len(df_info)
+    prob_list.append(proportion)
+
+    print(f">= {i} is {proportion}")
+
+# Create a bar plot
+plt.figure(figsize=(10, 6))
+bars = plt.bar(range(0, 200, 20), prob_list)
+
+plt.xlabel('Threshold')
+plt.ylabel('Proportion')
+plt.title('Proportion of Rows where \'previous_last_day_change\' is >= Threshold')
+plt.xticks(range(0, 200, 20))
+# Add data labels
+for bar, proportion in zip(bars, prob_list):
+    plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01, f'{proportion:.2f}', ha='center', va='bottom')
+
+plt.show()
+
+
+
 

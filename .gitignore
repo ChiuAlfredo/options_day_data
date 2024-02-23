@@ -161,3 +161,5 @@ cython_debug/
 *.csv
 選擇權日內成交檔資料11002-11004/
 data/raw_data/*.txt
+data/group/2_C_TX1.gzip
+*.gzip
