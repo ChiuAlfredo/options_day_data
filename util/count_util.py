@@ -12,7 +12,7 @@ def count_last_day_change(df_strike_price):
     last_day = df_strike_price.index.max().date()
 
     # 獲取最後一天的所有交易
-    last_day_trades = df_strike_price.last('1D')
+    last_day_trades = df_strike_price.loc[df_strike_price.index.date == last_day]
 
     # 獲取最後一筆交易
     last_last_trade = last_day_trades.iloc[-1]['MTF_PRICE']
@@ -36,9 +36,8 @@ def count_last_day_change(df_strike_price):
         # 獲取前一天的最後一筆交易
         previous_last_trade = previous_day_trades.iloc[-1]['MTF_PRICE']
     else:
+        previous_day = None
         previous_last_trade = None
 
-
-
-    return previous_last_trade,last_first_trade,last_last_trade
+    return previous_last_trade,last_first_trade,last_last_trade,last_day,previous_day
    

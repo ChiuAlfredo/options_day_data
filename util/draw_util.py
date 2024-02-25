@@ -63,3 +63,32 @@ def draw_daily_count_30min(df,file_folder):
     # #show
     # plt.show()
     plt.close()
+
+
+def draw_prop_change(df_info,column,title,file_folder='prob'):
+    
+    prob_list = []
+    for i in range(0,400,20):
+        mask = df_info[column] >= i
+
+        # Calculate the proportion
+        proportion = mask.sum() / len(df_info)
+        prob_list.append(proportion)
+
+        print(f">= {i} is {proportion}")
+
+    # Create a bar plot
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(range(0, 400, 20), prob_list)
+
+    plt.xlabel('Threshold')
+    plt.ylabel('Proportion')
+    plt.title(title)
+    plt.xticks(range(0, 400, 20))
+    # Add data labels
+    for bar, proportion in zip(bars, prob_list):
+        plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01, f'{proportion:.2f}', ha='center', va='bottom')
+
+    # Save the figure
+    plt.savefig(f"./data/picture/{file_folder}/{title}.png")
+    plt.show()
