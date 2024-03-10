@@ -163,3 +163,4 @@ cython_debug/
 data/raw_data/*.txt
 data/group/2_C_TX1.gzip
 *.gzip
+選擇權.txt
