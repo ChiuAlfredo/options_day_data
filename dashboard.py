@@ -17,10 +17,20 @@ if not os.path.exists(f'./data/picture/{file_folder}'):
 
 
 # 繪圖
-def draw_prop_change(df_info, df_title, option_type, year_filter=None):
+def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=None):
     # Apply year filter if provided
+
+    df_title = f'{options_type_week_month}_{option_type}'
+
     if year_filter:
         df_info = df_info[df_info['underlayed'].str.contains(year_filter)]
+
+    if options_type_week_month == 'week':
+        df_info = df_info[df_info['underlayed'].str.contains('W1|W2|W4|W5')]
+    elif options_type_week_month == 'month':
+        df_info = df_info[~df_info['underlayed'].str.contains('W1|W2|W4|W5')]
+    
+    
 
     if option_type == 'C':
         # Create a list to store all the charts
@@ -186,21 +196,28 @@ def draw_prop_change(df_info, df_title, option_type, year_filter=None):
     return charts
 
 
-# 月選
-month_options_df = pd.read_csv(
-    './data/info/month_options_last_day_info.csv', encoding='utf-8'
+# # 月選
+# month_options_df = pd.read_csv(
+#     './data/info/month_options_last_day_info.csv', encoding='utf-8'
+# )
+
+# month_charts_call = draw_prop_change(df_info=month_options_df, df_title='month', option_type='C')
+# month_charts_put = draw_prop_change(df_info=month_options_df, df_title='month', option_type='P')
+
+# # 周選
+# week_options_df = pd.read_csv(
+#     './data/info/week_options_last_day_info.csv', encoding='utf-8'
+# )
+
+# week_charts_call = draw_prop_change(df_info=week_options_df, df_title='week', option_type='C')
+# week_charts_put = draw_prop_change(df_info=week_options_df, df_title='week', option_type='P')
+
+options_df = pd.read_csv(
+    './data/info/all_options_last_day_info.csv', encoding='utf-8'
 )
 
-month_charts_call = draw_prop_change(df_info=month_options_df, df_title='month', option_type='C')
-month_charts_put = draw_prop_change(df_info=month_options_df, df_title='month', option_type='P')
 
-# 周選
-week_options_df = pd.read_csv(
-    './data/info/week_options_last_day_info.csv', encoding='utf-8'
-)
 
-week_charts_call = draw_prop_change(df_info=week_options_df, df_title='week', option_type='C')
-week_charts_put = draw_prop_change(df_info=week_options_df, df_title='week', option_type='P')
 
 # Create the Dash app
 app = dash.Dash(__name__)
@@ -212,7 +229,7 @@ app.layout = html.Div(children=[
     html.Div(children=[
         html.H2(children='Select Options Type:'),
         dcc.Dropdown(
-            id='options-type',
+            id='options-type_week_month',
             options=[
                 {'label': 'Week Options', 'value': 'week'},
                 {'label': 'Month Options', 'value': 'month'}
@@ -257,21 +274,13 @@ app.layout = html.Div(children=[
 @app.callback(
     dash.dependencies.Output('options-title', 'children'),
     dash.dependencies.Output('options-charts', 'children'),
-    [dash.dependencies.Input('options-type', 'value'),
+    [dash.dependencies.Input('options-type_week_month', 'value'),
      dash.dependencies.Input('option-type', 'value'),
      dash.dependencies.Input('year-filter', 'value')]
 )
-def update_options(options_type, option_type, year_filter):
-    if options_type == 'week':
-        if option_type == 'C':
-            return 'Week Options - Call', draw_prop_change(week_options_df, 'week', 'C', year_filter)
-        elif option_type == 'P':
-            return 'Week Options - Put', draw_prop_change(week_options_df, 'week', 'P', year_filter)
-    elif options_type == 'month':
-        if option_type == 'C':
-            return 'Month Options - Call', draw_prop_change(month_options_df, 'month', 'C', year_filter)
-        elif option_type == 'P':
-            return 'Month Options - Put', draw_prop_change(month_options_df, 'month', 'P', year_filter)
+def update_options(options_type_week_month, option_type, year_filter):
+    return f'{options_type_week_month}_{option_type}',draw_prop_change(df_info=options_df,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
+
 
 
 app.run_server(debug=False, use_reloader=False, port=8050,host="0.0.0.0")
