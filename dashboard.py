@@ -17,7 +17,7 @@ if not os.path.exists(f'./data/picture/{file_folder}'):
 
 
 # 繪圖
-def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=None):
+def draw_prop_change(df_info,base_column,comparision_column,options_type_week_month,option_type, year_filter=None):
     # Apply year filter if provided
 
     df_title = f'{options_type_week_month}_{option_type}'
@@ -29,6 +29,9 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
         df_info = df_info[df_info['underlayed'].str.contains('W1|W2|W4|W5')]
     elif options_type_week_month == 'month':
         df_info = df_info[~df_info['underlayed'].str.contains('W1|W2|W4|W5')]
+
+    
+    df_info['change_value'] = (df_info[base_column] - df_info[comparision_column])/df_info[comparision_column]
     
     
 
@@ -40,8 +43,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
             dcc.Graph(
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[(df_info['kind'] == option_type)],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_{option_type.lower()}_prob_previous_last',
+                    column='change_value',
+                    title=f'{df_title}_{option_type.lower()}',
                 )
             )
         )
@@ -52,8 +55,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                     df_info=df_info[
                         (df_info['moneyness'] < 0.97) & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_deep_ITM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_deep_ITM_{option_type.lower()}',
                 )
             )
         )
@@ -66,8 +69,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                         & (df_info['moneyness'] < 0.99)
                         & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_ITM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_ITM_{option_type.lower()}',
                 )
             )
         )
@@ -80,8 +83,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                         & (df_info['moneyness'] < 1.01)
                         & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_ATM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_ATM_{option_type.lower()}',
                 )
             )
         )
@@ -94,8 +97,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                         & (df_info['moneyness'] < 1.03)
                         & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_OTM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_OTM_{option_type.lower()}',
                 )
             )
         )
@@ -106,8 +109,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                     df_info=df_info[
                         (df_info['moneyness'] >= 1.03) & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_deep_OTM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_deep_OTM_{option_type.lower()}',
                 )
             )
         )
@@ -118,8 +121,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
             dcc.Graph(
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[(df_info['kind'] == option_type)],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_{option_type.lower()}_prob_previous_last',
+                    column='change_value',
+                    title=f'{df_title}_{option_type.lower()}',
                 )
             )
         )
@@ -131,8 +134,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                     df_info=df_info[
                         (df_info['moneyness'] >= 1.03) & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_deep_ITM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_deep_ITM_{option_type.lower()}',
                 )
             )
         )
@@ -145,8 +148,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                         & (df_info['moneyness'] < 1.03)
                         & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_ITM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_ITM_{option_type.lower()}',
                 )
             )
         )
@@ -159,8 +162,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                         & (df_info['moneyness'] < 1.01)
                         & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_ATM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_ATM_{option_type.lower()}',
                 )
             )
         )
@@ -173,8 +176,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                         & (df_info['moneyness'] < 0.99)
                         & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_OTM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_OTM_{option_type.lower()}',
                 )
             )
         )
@@ -186,8 +189,8 @@ def draw_prop_change(df_info,options_type_week_month,option_type, year_filter=No
                     df_info=df_info[
                         (df_info['moneyness'] < 0.97) & (df_info['kind'] == option_type)
                     ],
-                    column='previous_last_day_change',
-                    title=f'{df_title}_deep_OTM_{option_type.lower()}_previous_last_change',
+                    column='change_value',
+                    title=f'{df_title}_deep_OTM_{option_type.lower()}',
                 )
             )
         )
@@ -225,6 +228,38 @@ app = dash.Dash(__name__)
 # Define the layout of the app
 app.layout = html.Div(children=[
     html.H1(children='Options Day Data, 2020-2023'),
+
+    html.Div(children=[
+    html.H2(children='Select Base Value:'),
+        dcc.Dropdown(
+            id='base-column',
+            options=[
+                {'label': '結算日選擇權開盤價', 'value': '結算日選擇權開盤價'},
+                {'label': '結算日選擇權收盤價', 'value': '結算日選擇權收盤價'},
+                {'label': '結算日選擇權結算價', 'value': '結算日選擇權結算價'},
+                {'label': '前天選擇權開盤價', 'value': '前天選擇權開盤價'},
+                {'label': '前天選擇權收盤價', 'value': '前天選擇權收盤價'},
+                {'label': '前天選擇權結算價', 'value': '前天選擇權結算價'}
+            ],
+            value='前天選擇權收盤價'
+        )
+    ]),
+
+    html.Div(children=[
+        html.H2(children='Select Comparison Value:'),
+        dcc.Dropdown(
+            id='comparison-column',
+            options=[
+                {'label': '結算日選擇權開盤價', 'value': '結算日選擇權開盤價'},
+                {'label': '結算日選擇權收盤價', 'value': '結算日選擇權收盤價'},
+                {'label': '結算日選擇權結算價', 'value': '結算日選擇權結算價'},
+                {'label': '前天選擇權開盤價', 'value': '前天選擇權開盤價'},
+                {'label': '前天選擇權收盤價', 'value': '前天選擇權收盤價'},
+                {'label': '前天選擇權結算價', 'value': '前天選擇權結算價'}
+            ],
+            value='結算日選擇權收盤價'
+        )
+    ]),
 
     html.Div(children=[
         html.H2(children='Select Options Type:'),
@@ -274,16 +309,20 @@ app.layout = html.Div(children=[
 @app.callback(
     dash.dependencies.Output('options-title', 'children'),
     dash.dependencies.Output('options-charts', 'children'),
-    [dash.dependencies.Input('options-type_week_month', 'value'),
-     dash.dependencies.Input('option-type', 'value'),
-     dash.dependencies.Input('year-filter', 'value')]
+    [
+        dash.dependencies.Input('base-column', 'value'),
+        dash.dependencies.Input('comparison-column', 'value'),
+        dash.dependencies.Input('options-type_week_month', 'value'),
+        dash.dependencies.Input('option-type', 'value'),
+        dash.dependencies.Input('year-filter', 'value')
+    ]
 )
-def update_options(options_type_week_month, option_type, year_filter):
-    return f'{options_type_week_month}_{option_type}',draw_prop_change(df_info=options_df,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
+def update_options(base_column,comparision_column,options_type_week_month, option_type, year_filter):
+    return f'{options_type_week_month}_{option_type}',draw_prop_change(df_info=options_df,base_column=base_column,comparision_column=comparision_column,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
 
 
 
-app.run_server(debug=False, use_reloader=False, port=8050,host="0.0.0.0")
+app.run_server(debug=False, use_reloader=False, port=8051,host="0.0.0.0")
 
 
     

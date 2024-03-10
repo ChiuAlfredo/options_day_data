@@ -189,9 +189,6 @@ df_info = df_info.rename(columns={
     '結算日PRODID': 'PRODID',
     '結算日underlayed': 'underlayed',
     '結算日kind': 'kind',
-    '結算日結算價': '結算價',
-    '結算日選擇權開盤價': '選擇權開盤價',
-    '結算日選擇權收盤價': '選擇權收盤價',
 })
 
 
