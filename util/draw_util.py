@@ -1,6 +1,8 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.graph_objects as go
+
 
 def draw_daily_count_30min(df,file_folder):
     month = df['month'].iloc[0]
@@ -66,29 +68,28 @@ def draw_daily_count_30min(df,file_folder):
 
 
 def draw_prop_change(df_info,column,title,file_folder='prob'):
-    
+
     prob_list = []
-    for i in range(0,400,20):
+    for i in range(0, 400, 20):
         mask = df_info[column] >= i
 
         # Calculate the proportion
-        proportion = mask.sum() / len(df_info)
+        proportion = round(mask.sum() / len(df_info),2)
         prob_list.append(proportion)
 
-        print(f">= {i} is {proportion}")
+        # print(f">= {i} is {proportion}")
 
     # Create a bar plot
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(range(0, 400, 20), prob_list)
+    fig = go.Figure(data=[go.Bar(x=list(range(0, 400, 20)), y=prob_list, text=prob_list, textposition='auto')])
 
-    plt.xlabel('Threshold')
-    plt.ylabel('Proportion')
-    plt.title(title)
-    plt.xticks(range(0, 400, 20))
-    # Add data labels
-    for bar, proportion in zip(bars, prob_list):
-        plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01, f'{proportion:.2f}', ha='center', va='bottom')
+    fig.update_layout(
+        title=title,
+        xaxis_title='Threshold',
+        yaxis_title='Proportion',
+        xaxis=dict(tickmode='linear', dtick=20),
+    )
 
-    # Save the figure
-    plt.savefig(f"./data/picture/{file_folder}/{title}.png")
-    plt.show()
+    # # Save the figure
+    # fig.write_image(f"./data/picture/{file_folder}/{title}.png")
+
+    return fig 
