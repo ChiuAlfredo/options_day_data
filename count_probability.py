@@ -31,7 +31,7 @@ for file_folder in file_folders:
 
     print(file_folder)
 
-    month_data_df = pd.read_parquet(f'data/group/{file_folder}.gzip')
+    month_data_df = pd.read_parquet(f'data/group/{file_folder}.csv')
     month_data_df['datetime'] = pd.to_datetime(month_data_df['datetime'])
     month_data_df['MTF_DATE'] = pd.to_datetime(month_data_df['MTF_DATE'])
 
