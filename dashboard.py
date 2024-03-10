@@ -322,7 +322,7 @@ def update_options(base_column,comparision_column,options_type_week_month, optio
 
 
 
-app.run_server(debug=False, use_reloader=False, port=8051,host="0.0.0.0")
+app.run_server(debug=False, use_reloader=False, port=8050,host="0.0.0.0")
 
 
     
