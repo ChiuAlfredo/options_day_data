@@ -2,6 +2,8 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from dash import dash_table
+import numpy as np
 import os
 
 import pandas as pd
@@ -17,10 +19,12 @@ if not os.path.exists(f'./data/picture/{file_folder}'):
 
 
 # 繪圖
-def draw_prop_change(df_info,base_column,comparision_column,options_type_week_month,option_type, year_filter=None):
+def draw_prop_change(df_info,base_column,comparison_column,options_type_week_month,option_type, year_filter=None):
     # Apply year filter if provided
 
     df_title = f'{options_type_week_month}_{option_type}'
+
+    
 
     if year_filter:
         df_info = df_info[df_info['underlayed'].str.contains(year_filter)]
@@ -31,8 +35,11 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
         df_info = df_info[~df_info['underlayed'].str.contains('W1|W2|W4|W5')]
 
     
-    df_info['change_value'] = (df_info[base_column] - df_info[comparision_column])/df_info[comparision_column]
+    df_info['change_value'] = (df_info[base_column] - df_info[comparison_column])/df_info[base_column]*100
+    df_info = df_info.replace([np.inf, -np.inf],np.nan)
+    df_info.fillna(0,inplace=True)
     
+    df_info = df_info[df_info[base_column]>0]
     
 
     if option_type == 'C':
@@ -44,7 +51,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[(df_info['kind'] == option_type)],
                     column='change_value',
-                    title=f'{df_title}_{option_type.lower()}',
+                    title=f'{df_title}_prob',
                 )
             )
         )
@@ -53,10 +60,12 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
             dcc.Graph(
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[
-                        (df_info['moneyness'] < 0.97) & (df_info['kind'] == option_type)
+                        (df_info['moneyness'] < 0.95) 
+                        & (df_info['moneyness'] < 0.97) 
+                        & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_deep_ITM_{option_type.lower()}',
+                    title=f'{df_title}_deep_ITM',
                 )
             )
         )
@@ -70,7 +79,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                         & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_ITM_{option_type.lower()}',
+                    title=f'{df_title}_ITM',
                 )
             )
         )
@@ -84,7 +93,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                         & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_ATM_{option_type.lower()}',
+                    title=f'{df_title}_ATM',
                 )
             )
         )
@@ -98,7 +107,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                         & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_OTM_{option_type.lower()}',
+                    title=f'{df_title}_OTM',
                 )
             )
         )
@@ -107,10 +116,12 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
             dcc.Graph(
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[
-                        (df_info['moneyness'] >= 1.03) & (df_info['kind'] == option_type)
+                        (df_info['moneyness'] < 1.05)
+                        & (df_info['moneyness'] >= 1.03) 
+                        & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_deep_OTM_{option_type.lower()}',
+                    title=f'{df_title}_deep_OTM',
                 )
             )
         )
@@ -122,7 +133,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[(df_info['kind'] == option_type)],
                     column='change_value',
-                    title=f'{df_title}_{option_type.lower()}',
+                    title=f'{df_title}_prob',
                 )
             )
         )
@@ -132,10 +143,12 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
             dcc.Graph(
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[
-                        (df_info['moneyness'] >= 1.03) & (df_info['kind'] == option_type)
+                        (df_info['moneyness'] < 1.05)
+                        & (df_info['moneyness'] >= 1.03) 
+                        & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_deep_ITM_{option_type.lower()}',
+                    title=f'{df_title}_deep_ITM',
                 )
             )
         )
@@ -149,7 +162,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                         & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_ITM_{option_type.lower()}',
+                    title=f'{df_title}_ITM',
                 )
             )
         )
@@ -163,7 +176,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                         & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_ATM_{option_type.lower()}',
+                    title=f'{df_title}_ATM',
                 )
             )
         )
@@ -177,7 +190,7 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
                         & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_OTM_{option_type.lower()}',
+                    title=f'{df_title}_OTM',
                 )
             )
         )
@@ -187,14 +200,20 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
             dcc.Graph(
                 figure=draw_util.draw_prop_change(
                     df_info=df_info[
-                        (df_info['moneyness'] < 0.97) & (df_info['kind'] == option_type)
+                        (df_info['moneyness'] >= 0.95)
+                        & (df_info['moneyness'] < 0.97) 
+                        & (df_info['kind'] == option_type)
                     ],
                     column='change_value',
-                    title=f'{df_title}_deep_OTM_{option_type.lower()}',
+                    title=f'{df_title}_deep_OTM',
                 )
             )
         )
-
+    
+    # table = dash_table.DataTable(
+    #     df_info.to_dict('records'),
+    #     [{"name": i, "id": i} for i in df_info.columns]
+    # )
 
     return charts
 
@@ -218,8 +237,6 @@ def draw_prop_change(df_info,base_column,comparision_column,options_type_week_mo
 options_df = pd.read_csv(
     './data/info/all_options_last_day_info.csv', encoding='utf-8'
 )
-
-
 
 
 # Create the Dash app
@@ -302,7 +319,9 @@ app.layout = html.Div(children=[
 
     html.H2(id='options-title'),
 
-    html.Div(id='options-charts')
+    html.Div(id='options-charts'),
+
+    # html.Div(id='options-table')
 ])
 
 
@@ -317,12 +336,12 @@ app.layout = html.Div(children=[
         dash.dependencies.Input('year-filter', 'value')
     ]
 )
-def update_options(base_column,comparision_column,options_type_week_month, option_type, year_filter):
-    return f'{options_type_week_month}_{option_type}',draw_prop_change(df_info=options_df,base_column=base_column,comparision_column=comparision_column,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
+def update_options(base_column,comparison_column,options_type_week_month, option_type, year_filter):
+    return f'{options_type_week_month}_{option_type}',draw_prop_change(df_info=options_df,base_column=base_column,comparison_column=comparison_column,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
 
 
 
-app.run_server(debug=False, use_reloader=False, port=8050,host="0.0.0.0")
+app.run_server(debug=False, use_reloader=False, port=8051,host="0.0.0.0")
 
 
     
