@@ -213,7 +213,6 @@ def draw_prop_change(df_info,base_column,comparison_column,options_type_week_mon
     table = dash_table.DataTable(
         df_info.to_dict('records'),
         [{"name": i, "id": i} for i in df_info.columns],
-        page_action='none',
         fixed_rows={'headers': True},
 
     )
