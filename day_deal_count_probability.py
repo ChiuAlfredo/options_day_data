@@ -80,19 +80,19 @@ df_info.reset_index(drop=True, inplace=True)
 #         )
 
 
-# 計算previous_last_first變動%
-df_info['previous_last_day_change'] = (
-    (df_info['結算日選擇權收盤價'] - df_info['前天選擇權收盤價'])
-    / df_info['前天選擇權收盤價']
-    * 100
-)
+# # 計算previous_last_first變動%
+# df_info['previous_last_day_change'] = (
+#     (df_info['結算日選擇權收盤價'] - df_info['前天選擇權收盤價'])
+#     / df_info['前天選擇權收盤價']
+#     * 100
+# )
 
-# 計算last_first-last變動%
-df_info['last_day_change'] = (
-    (df_info['結算日選擇權收盤價'] - df_info['結算日選擇權開盤價'])
-    / df_info['結算日選擇權開盤價']
-    * 100
-)
+# # 計算last_first-last變動%
+# df_info['last_day_change'] = (
+#     (df_info['結算日選擇權收盤價'] - df_info['結算日選擇權開盤價'])
+#     / df_info['結算日選擇權開盤價']
+#     * 100
+# )
 
 
 # 計算價內價外
