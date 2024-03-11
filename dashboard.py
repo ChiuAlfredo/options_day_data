@@ -35,7 +35,7 @@ def draw_prop_change(df_info,base_column,comparison_column,options_type_week_mon
         df_info = df_info[~df_info['underlayed'].str.contains('W1|W2|W4|W5')]
 
     
-    df_info['change_value'] = (df_info[base_column] - df_info[comparison_column])/df_info[base_column]*100
+    df_info['change_value'] = ( df_info[comparison_column]- df_info[base_column])/df_info[base_column]*100
     df_info = df_info.replace([np.inf, -np.inf],np.nan)
     df_info.fillna(0,inplace=True)
     
