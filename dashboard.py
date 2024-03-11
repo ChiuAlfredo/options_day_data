@@ -1,12 +1,12 @@
 
+import os
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash import dash_table
 import numpy as np
-import os
-
 import pandas as pd
+from dash import dash_table
 
 import util.draw_util as draw_util
 
@@ -210,12 +210,15 @@ def draw_prop_change(df_info,base_column,comparison_column,options_type_week_mon
             )
         )
     
-    # table = dash_table.DataTable(
-    #     df_info.to_dict('records'),
-    #     [{"name": i, "id": i} for i in df_info.columns]
-    # )
+    table = dash_table.DataTable(
+        df_info.to_dict('records'),
+        [{"name": i, "id": i} for i in df_info.columns],
+        page_action='none',
+        fixed_rows={'headers': True},
 
-    return charts
+    )
+
+    return charts,table
 
 
 # # 月選
@@ -321,13 +324,14 @@ app.layout = html.Div(children=[
 
     html.Div(id='options-charts'),
 
-    # html.Div(id='options-table')
+    html.Div(id='options-table')
 ])
 
 
 @app.callback(
     dash.dependencies.Output('options-title', 'children'),
     dash.dependencies.Output('options-charts', 'children'),
+    dash.dependencies.Output('options-table', 'children'),
     [
         dash.dependencies.Input('base-column', 'value'),
         dash.dependencies.Input('comparison-column', 'value'),
@@ -337,11 +341,12 @@ app.layout = html.Div(children=[
     ]
 )
 def update_options(base_column,comparison_column,options_type_week_month, option_type, year_filter):
-    return f'{options_type_week_month}_{option_type}',draw_prop_change(df_info=options_df,base_column=base_column,comparison_column=comparison_column,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
+    charts , table  = draw_prop_change(df_info=options_df,base_column=base_column,comparison_column=comparison_column,options_type_week_month=options_type_week_month, option_type=option_type, year_filter=year_filter)
+    return f'{options_type_week_month}_{option_type}',charts,table
 
 
 
-app.run_server(debug=False, use_reloader=False, port=8051,host="0.0.0.0")
+app.run_server(debug=False, use_reloader=False, port=8051)
 
 
     
