@@ -70,7 +70,7 @@ def draw_daily_count_30min(df,file_folder):
 def draw_prop_change(df_info,column,title,file_folder='prob'):
     expect_return = df_info[column].sum()/df_info[column].count()
     prob_list = []
-    for i in range(0, 200, 20):
+    for i in range(0, 400, 20):
         mask = (df_info[column] >= i) & (df_info[column] < i+20)
 
         # Calculate the proportion
@@ -80,7 +80,7 @@ def draw_prop_change(df_info,column,title,file_folder='prob'):
         # print(f">= {i} is {proportion}")
 
     # Create a bar plot
-    fig = go.Figure(data=[go.Bar(x=list(range(0, 200, 20)), y=prob_list, text=prob_list, textposition='auto')])
+    fig = go.Figure(data=[go.Bar(x=list(range(0, 400, 20)), y=prob_list, text=prob_list, textposition='auto')])
 
     fig.update_layout(
         title=title+f',expect_return:{expect_return}',
