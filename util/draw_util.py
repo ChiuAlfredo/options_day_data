@@ -71,7 +71,7 @@ def draw_prop_change(df_info,column,title,file_folder='prob'):
     expect_return = df_info[column].sum()/df_info[column].count()
     prob_list = []
     for i in range(0, 400, 20):
-        mask = (df_info[column] >= i) & (df_info[column] < i+20)
+        mask = (df_info[column] >= i) 
 
         # Calculate the proportion
         proportion = round(mask.sum() / len(df_info),2)
