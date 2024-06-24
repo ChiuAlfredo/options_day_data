@@ -193,7 +193,7 @@ def main():
         month = group['month'].iloc[0]
         kind = group['kind'].iloc[0]
         underlayed = group['underlayed'].iloc[0]  # Get the first 'underlayed' value in the group
-        filename = f'./data/group/{month}_{kind}_{underlayed}' 
+        filename = f'./data/group_day/{month}_{kind}_{underlayed}' 
         if month in ['2', '3', '4']:
             group.to_parquet(f'{filename}.gzip', compression='gzip', index=False)
             group.to_csv(f'{filename}.csv', index=False, encoding='utf-8-sig')
