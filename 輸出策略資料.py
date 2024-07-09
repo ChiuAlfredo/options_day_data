@@ -33,12 +33,12 @@ def read_index(year, month, day, kind):
     )
 
     # 取樣間隔為五筆資料
-    df_index_new = df_index.iloc[::60]
+    df_index_new = df_index.iloc[::12]
     df_index_new = df_index_new[:-1]
     
-    df_index_new = pd.concat([df_index_new,df_index.iloc[-5:]])
+    df_index_new = pd.concat([df_index_new,df_index.iloc[-12:]])
 
-    df_index_new = df_index_new.iloc[:-4]
+    df_index_new = df_index_new.iloc[:-12]
     
 
     df_index_new = df_index_new[['時間','發行量加權股價指數','time']]
@@ -95,7 +95,7 @@ def get_delta(month_index,strike_price_list):
                 )
                 ).BS_delta()[0]
             ,    axis=1,
-        )
+        ).round(4)
 
     df_delta.index = month_index['時間']
 
@@ -124,7 +124,7 @@ def get_gamma(month_index,strike_price_list):
                 )
                 ).BS_gamma()[0]
             ,    axis=1,
-        )
+        ).round(4)
 
     df_gamma.index = month_index['時間']
 
@@ -202,21 +202,23 @@ def get_option_price(month_price,strike_price_list):
                 price = (df_t['MTF_PRICE']*df_t['MTF_QNTY']).sum()/df_t['MTF_QNTY'].sum()
                 quantity = df_t['MTF_QNTY'].sum()
 
-                df_price.at[t, f'{k}_成交量'] = round(quantity, 3)
-                df_price.at[t, f'{k}_成交價'] = round(price, 3)
+                df_price.at[t, f'{k}_成交量'] = quantity.round(3)
+                df_price.at[t, f'{k}_成交價'] = price.round(3)
             
     return df_price
 
 
 year = '2021'
 month = '03'
-day = '03'
-kind = 'TX1'
+day = '17'
+kind = 'TXO'
 
+month_option = '3'
 
-month_price_c = read_option_price(f'data/group/3_C_TX1.gzip')
-month_price_p = read_option_price(f'data/group/3_P_TX1.gzip')
+month_price_c = read_option_price(f'data/group/{month_option}_C_{kind}.gzip')
+month_price_p = read_option_price(f'data/group/{month_option}_P_{kind}.gzip')
 month_index = read_index(year, month, day, kind)[1]
+month_index['發行量加權股價指數_變化'] = month_index['發行量加權股價指數'].diff().round(2)
 
 price_range = {
     'min': round(month_index['發行量加權股價指數'].mean() / 100) * 100 - 300,
@@ -229,6 +231,11 @@ strike_price_list = sorted(month_price_c[
         & (month_price_c['strike_price'] > price_range['min'])
     ]['strike_price'].unique().tolist())
 
+df_price_c = get_option_price(month_price_c,strike_price_list).set_index('時間')
+df_price_p = get_option_price(month_price_p,strike_price_list).set_index('時間')
+
+df_price_c.columns = [f"C_{col}" for col in df_price_c.columns]
+df_price_p.columns = [f"P_{col}" for col in df_price_p.columns]
 
 
 
@@ -236,25 +243,40 @@ df_delta = get_delta(month_index,strike_price_list)
 df_gamma = get_gamma(month_index,strike_price_list)
 df_bs_price_c,df_bs_price_p = get_bs_price_c(month_index,strike_price_list)
 
+def get_real_delta_gamma(month_index,df_price,strike_price_list,kind='C'):
+    df_delta = pd.DataFrame()
+    df_gamma = pd.DataFrame()
+    # 遍歷所有strike prices
+    for strike_price in strike_price_list:
+        # strike_price = strike_price_list[0]
+        # 計算df_price中特定strike price的成交量變化
+        df_price[f'{kind}_{strike_price}_成交價_變化'] = df_price[f'{kind}_{strike_price}_成交價'].diff().round(2)
+
+        # 計算delta
+        df_delta[f'{kind}_{strike_price}_real_delta'] = (df_price[f'{kind}_{strike_price}_成交價_變化'] / month_index['發行量加權股價指數_變化'].values).round(4)
+
+        # 計算gamma
+        df_gamma[f'{kind}_{strike_price}_real_gamma'] = (df_delta[f'{kind}_{strike_price}_real_delta'].diff().round(2) / month_index['發行量加權股價指數_變化'].values).round(4)
 
 
-df_price_c = get_option_price(month_price_c,strike_price_list).set_index('時間')
-df_price_p = get_option_price(month_price_p,strike_price_list).set_index('時間')
+    return df_delta,df_gamma
+# real delta gamma
+df_real_delta_c,df_real_gamma_c = get_real_delta_gamma(month_index,df_price = df_price_c,strike_price_list = strike_price_list,kind='C')
+df_real_delta_p,df_real_gamma_p = get_real_delta_gamma(month_index,df_price_p,strike_price_list,kind='P')
 
-df_price_c.columns = [f"{col}_C" for col in df_price_c.columns]
-df_price_p.columns = [f"{col}_P" for col in df_price_p.columns]
 
 
-month_index
+
+# month_index
 
 
 # List of dataframes to merge
-dfs = [df_delta, df_gamma, df_bs_price_c, df_bs_price_p, df_price_c, df_price_p, month_index]
+dfs = [df_delta, df_gamma, df_bs_price_c, df_bs_price_p, df_price_c, df_price_p, month_index,df_real_delta_c,df_real_gamma_c,df_real_delta_p,df_real_gamma_p]
 
 # Use reduce to merge all dataframes
 
 month_data_df_5min = reduce(lambda left,right: pd.merge(left,right,on='時間', how='outer'), dfs)
-month_data_df_5min.to_csv(f'202103TX1每五分鐘資料.csv',index=False,encoding='utf-8-sig')
+month_data_df_5min.to_csv(f'2021{month}{kind}每一分鐘資料.csv',index=False,encoding='utf-8-sig')
 
 
 
