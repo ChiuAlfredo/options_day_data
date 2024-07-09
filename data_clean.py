@@ -193,7 +193,7 @@ def main():
         month = group['month'].iloc[0]
         kind = group['kind'].iloc[0]
         underlayed = group['underlayed'].iloc[0]  # Get the first 'underlayed' value in the group
-        filename = f'./data/group_day/{month}_{kind}_{underlayed}' 
+        filename = f'./data/group/{month}_{kind}_{underlayed}' 
         if month in ['2', '3', '4']:
             group.to_parquet(f'{filename}.gzip', compression='gzip', index=False)
             group.to_csv(f'{filename}.csv', index=False, encoding='utf-8-sig')
@@ -203,15 +203,14 @@ def main():
     prod_df = prod_df.apply(write_group, meta=('month_alpha', 'object')).compute()
 
 if __name__ == '__main__':
-    from dask.distributed import LocalCluster
-
+    import glob
     import os
     import shutil
     import zipfile
 
-    import pandas as pd
-    import glob
     import dask.dataframe as dd
+    import pandas as pd
+    from dask.distributed import LocalCluster
     cluster = LocalCluster()
     client = cluster.get_client()
 
@@ -219,5 +218,6 @@ if __name__ == '__main__':
     main()
 from dask.distributed import LocalCluster
 from distributed import Client
+
 cluster = LocalCluster(processes=False)
 client = cluster.get_client()
