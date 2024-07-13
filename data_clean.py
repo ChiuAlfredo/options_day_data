@@ -106,7 +106,7 @@ def main():
     all_data_df['month_alpha'] = all_data_df['MTF_PROD_ID'].str.slice(8, 9)
 
     # 月份映射Ａ~L(112月)買權,M~X(112月)賣權
-    alpha_to_month = { 'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8, 'I': 9, 'J': 10, 'K': 11, 'L': 12, 'M': 1, 'N': 2, 'O': 3, 'P': 4, 'Q': 5, 'R': 6, 'S': 7, 'T': 8, 'U': 9, 'V': 10, 'W': 11, 'X': 12, }
+    alpha_to_month = { 'A': '01', 'B': '02', 'C': '03', 'D': '04', 'E': '05', 'F': '06', 'G': '07', 'H': '08', 'I': '09', 'J': '10', 'K': '11', 'L': '12', 'M': '01', 'N': '02', 'O': '03', 'P': '04', 'Q': '05', 'R': '06', 'S': '07', 'T': '08', 'U': '09', 'V': '10', 'W': '11', 'X': '12', }
     # no dask
     # # 轉換month_alpha
     # all_data_df['month'] = all_data_df['month_alpha'].map(alpha_to_month)
@@ -120,7 +120,7 @@ def main():
 
 
     # 轉換month為字串
-    all_data_df['month'] = all_data_df['month'].astype(str)
+    # all_data_df['month'] = all_data_df['month'].astype(str)
 
 
     # %%
@@ -193,8 +193,8 @@ def main():
         month = group['month'].iloc[0]
         kind = group['kind'].iloc[0]
         underlayed = group['underlayed'].iloc[0]  # Get the first 'underlayed' value in the group
-        filename = f'./data/group/{month}_{kind}_{underlayed}' 
-        if month in ['2', '3', '4']:
+        filename = f'./data/group_day/{month}_{kind}_{underlayed}' 
+        if month in ['01','02', '03', '04']:
             group.to_parquet(f'{filename}.gzip', compression='gzip', index=False)
             group.to_csv(f'{filename}.csv', index=False, encoding='utf-8-sig')
         return pd.DataFrame()  # Return an empty DataFrame
