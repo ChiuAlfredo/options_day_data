@@ -18,10 +18,10 @@ end_time = pd.to_datetime('13:30:00').time()
 timefiltered_df = df[(df['Time'] >= start_time) & (df['Time'] <= end_time)]
 
 # 篩選 '價性' 為 "價內" 的數據
-ksdf = timefiltered_df[timefiltered_df['價性'] == "深度價內 (DITM)"]
+ksdf = timefiltered_df[timefiltered_df['價性'] == "價內 (ITM)"]
 
 # 篩選 '型態' 為 "買權" 的數據
-optiondf = ksdf[ksdf['買賣權'] == "C"].copy()
+optiondf = ksdf[ksdf['買賣權'] == "P"].copy()
 
 # 計算 '選擇權成交價變化率' 和 '期貨價格變化率' 的相關係數並四捨五入到小數第四位
 correlationTXF = optiondf['選擇權成交價變化率'].corr(optiondf['期貨價格變化率'])
@@ -31,15 +31,19 @@ roundedTXF = round(correlationTXF, 4)
 correlationTW = optiondf['選擇權成交價變化率'].corr(optiondf['指數價格變化率'])
 roundedTW = round(correlationTW, 4)
 
+# 計算 '期貨價格變化率' 和 '指數價格變化率' 的相關係數並四捨五入到小數第四位
+correlationTXFTW = timefiltered_df['期貨價格變化率'].corr(timefiltered_df['指數價格變化率'])
+roundedTXFTW = round(correlationTXFTW, 4)
+
+#計算資料筆數
 column_TX = '選擇權成交價變化率'
 TX_rows = optiondf[column_TX].shape[0]-1
-column_TXF = '期貨價格變化率'
-TXF_rows = optiondf[column_TXF].shape[0]-1
-column_TW = '指數價格變化率'
-TW_rows = optiondf[column_TW].shape[0]-1
-
+column_TXFTW = '指數價格變化率'
+TXFTW_rows = timefiltered_df[column_TXFTW].shape[0]-1
 
 # 顯示相關係數 & 資料數
 print(f"{roundedTXF}")
 print(f"{roundedTW}")
 print(f"各{TX_rows}")
+print(f"{roundedTXFTW}")
+print(f"各{TXFTW_rows}")
