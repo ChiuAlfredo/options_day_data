@@ -1,7 +1,10 @@
 import os
-from util.BS_util import BS_formula
-import pandas as pd
 from functools import reduce
+
+import numpy as np
+import pandas as pd
+
+from util.BS_util import BS_formula
 
 
 def read_index(year, month, day, kind):
@@ -291,6 +294,8 @@ for index, row in df_end_date_info.iterrows():
     day = row['日']
     kind = row['種類']
 
+    if year != 2021:
+        continue
 
     month_price_df = read_option_price(f'data/選擇權結算/{year}_{month}_{day}_{kind}.gzip') 
 
@@ -301,12 +306,12 @@ for index, row in df_end_date_info.iterrows():
     month_price_p = month_price_df[month_price_df['kind']=='P']
     month_index = read_index(year, month, day, kind)[1]
     month_index['發行量加權股價指數_變化'] = month_index['發行量加權股價指數'].diff().round(2)
+    month_index['發行量加權股價指數_變化率'] = np.log(month_index['發行量加權股價指數']/month_index['發行量加權股價指數'].shift(1))
 
 
     df_future_price = get_future_price(month_future_price_df).set_index('時間')
     df_future_price['期貨_成交價_變化'] = df_future_price['期貨_成交價'].diff().round(2)
-
-
+    df_future_price['期貨_成交價_變化率'] = np.log(df_future_price['期貨_成交價']/df_future_price['期貨_成交價'].shift(1))
 
     price_range = {
         'min': round(month_index['發行量加權股價指數'].mean() / 100) * 100 - 500,
@@ -354,6 +359,19 @@ for index, row in df_end_date_info.iterrows():
     df_real_delta_c,df_real_gamma_c = get_real_delta_gamma(month_index,df_price = df_price_c,strike_price_list = strike_price_list,kind='C')
     df_real_delta_p,df_real_gamma_p = get_real_delta_gamma(month_index,df_price_p,strike_price_list,kind='P')
 
+    def get_change_rate(df,columns_name_list,kind='C'):
+        # columns_name_list = ['成交價','成交量']
+
+        change_df = pd.DataFrame()
+        for column_name in columns_name_list:
+            for strike_price in strike_price_list:
+                # strike_price = strike_price_list[0]
+                change_df[f'{kind}_{strike_price}_{column_name}_變化率'] = np.log(df[f'{kind}_{strike_price}_{column_name}'] / df[f'{kind}_{strike_price}_{column_name}'].shift(1))
+        return change_df
+
+    df_option_price_change_c = get_change_rate(df_price_c,columns_name_list= ['成交價','成交量'],kind='C')
+    df_option_price_change_p = get_change_rate(df_price_p,columns_name_list= ['成交價','成交量'],kind='P')
+
 
 
 
@@ -361,7 +379,7 @@ for index, row in df_end_date_info.iterrows():
 
 
     # List of dataframes to merge
-    dfs = [df_delta, df_gamma, df_bs_price_c, df_bs_price_p, df_price_c, df_price_p, month_index,df_future_price,df_real_delta_c,df_real_gamma_c,df_real_delta_p,df_real_gamma_p]
+    dfs = [df_delta, df_gamma, df_bs_price_c, df_bs_price_p, df_price_c, df_price_p, month_index,df_future_price,df_real_delta_c,df_real_gamma_c,df_real_delta_p,df_real_gamma_p,df_option_price_change_c,df_option_price_change_p]
 
     # Use reduce to merge all dataframes
     def build_folder(source_dir,destanation_dir):
@@ -384,6 +402,84 @@ for index, row in df_end_date_info.iterrows():
 
     month_data_df_5min = reduce(lambda left,right: pd.merge(left,right,on='時間', how='outer'), dfs)
     month_data_df_5min.to_csv(f'./{destanation_dir}{year}_{month}_{day}_{kind}每一分鐘資料.csv',index=False,encoding='utf-8-sig')
+
+#%%
+import glob
+import re
+from itertools import product
+
+import pandas as pd
+
+# Step 1: Find all CSV files in the directory
+csv_files = glob.glob('./data/每一分鐘資料/*.csv')
+
+# Step 2: Read each CSV file and store in a list
+# dfs = [pd.read_csv(file, encoding='utf-8') for file in csv_files]
+new_dfs = pd.DataFrame()
+for file in csv_files:
+    # file = csv_files[0]
+    df = pd.read_csv(file, encoding='utf-8')
+
+    
+
+    price_list = [re.search(r'(\d+)_delta$', col).group(1) for col in df.columns if re.search(r'\d+_delta$', col)]
+    time_list = df['時間'].unique().tolist()
+    cp = ['C','P']
+
+
+    new_df = pd.DataFrame(list(product(time_list, price_list, cp)), columns=['時間', '履約價', '買賣權'])
+
+    # new_df['價格']
+
+    for index, row in new_df.iterrows():
+        # index = 100
+        # row = new_df.iloc[index]
+        new_df.at[index, '選擇權價格'] = float(df.loc[df['時間'] == row['時間'], f'{row["買賣權"]}_{row["履約價"]}_成交價'].iloc[0])
+        new_df.at[index,'選擇權成交量'] = int(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_成交量'].iloc[0])
+        new_df.at[index,'指數價格'] = float(df.loc[(df['時間'] == row['時間'])]['發行量加權股價指數'].iloc[0])
+        new_df.at[index,'期貨價格'] = float(df.loc[(df['時間'] == row['時間'])]['期貨_成交價'].iloc[0])
+        new_df.at[index,'期貨成交量'] = float(df.loc[(df['時間'] == row['時間'])]['期貨_成交量'].iloc[0])
+        new_df.at[index,'期貨價格變化率'] = float(df.loc[(df['時間'] == row['時間'])]['期貨_成交價_變化率'].iloc[0])
+        new_df.at[index,'指數價格變化率'] = float(df.loc[(df['時間'] == row['時間'])]['發行量加權股價指數_變化率'].iloc[0])
+        new_df.at[index,'選擇權成交價變化率'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_成交價_變化率'].iloc[0])
+        new_df.at[index,'選擇權成交量變化率'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_成交量_變化率'].iloc[0])
+        new_df.at[index,'real_delta'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_real_delta'].iloc[0])
+        new_df.at[index,'real_gamma'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_real_gamma'].iloc[0])
+
+    def classify_option(row):
+        k_s_ratio = row['履約價'] / row['指數價格']
+        if row['買賣權'] == 'C':  # 買權
+            if 0.94 <= k_s_ratio < 0.97:
+                return '深度價內 (DITM)'
+            elif 0.97 <= k_s_ratio < 0.99:
+                return '價內 (ITM)'
+            elif 0.99 <= k_s_ratio < 1.01:
+                return '價平 (ATM)'
+            elif 1.01 <= k_s_ratio < 1.03:
+                return '價外 (OTM)'
+            elif 1.03 <= k_s_ratio < 1.06:
+                return '深度價外 (DOTM)'
+        elif row['買賣權'] == 'P':  # 賣權
+            if 1.03 <= k_s_ratio < 1.06:
+                return '深度價內 (DITM)'
+            elif 1.01 <= k_s_ratio < 1.03:
+                return '價內 (ITM)'
+            elif 0.99 <= k_s_ratio < 1.01:
+                return '價平 (ATM)'
+            elif 0.97 <= k_s_ratio < 0.99:
+                return '價外 (OTM)'
+            elif 0.94 <= k_s_ratio < 0.97:
+                return '深度價外 (DOTM)'
+        return '未知'
+
+    new_df['履約價'] = new_df['履約價'].astype(int)
+    ## 價性 k/s
+    new_df['價性'] = new_df.apply(classify_option, axis=1)
+
+    new_dfs = pd.concat([new_dfs, new_df])
+
+new_dfs.to_csv('./data/每一分鐘資料_整理.csv', index=False, encoding='utf-8-sig')
+
 
 
 

@@ -1,9 +1,10 @@
+import glob
 import os
 import shutil
 import zipfile
 
 import pandas as pd
-import glob
+
 
 def unzip_files(source_dir, target_dir):
     for item in os.listdir(source_dir):  # loop through items in dir
@@ -48,6 +49,8 @@ for index, row in df_end_date_info.iterrows():
     year = row['年']
     month = row['月']
     day = row['日']
+    if year != '2021':
+        continue
     file_name = f'OWMTF_{year}{month}{day}.txt'
     file_dir = os.path.join(target_dir, file_name)
 
@@ -384,7 +387,7 @@ for index, row in df_end_date_info.iterrows():
 
 
     all_data_df.to_parquet(f'{data_dir}{row["年"]}_{row["月"]}_{row["日"]}.gzip', compression='gzip', index=False)
-    all_data_df.to_csv(f'{data_dir}{row["年"]}_{row["月"]}_{row["日"]}.csv', index=False, encoding='utf-8-sig')
+    # all_data_df.to_csv(f'{data_dir}{row["年"]}_{row["月"]}_{row["日"]}.csv', index=False, encoding='utf-8-sig')
 
 
     
