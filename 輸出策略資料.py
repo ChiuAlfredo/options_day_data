@@ -1,7 +1,9 @@
 import os
-from util.BS_util import BS_formula
-import pandas as pd
 from functools import reduce
+
+import pandas as pd
+
+from util.BS_util import BS_formula
 
 
 def read_index(year, month, day, kind):
@@ -384,6 +386,76 @@ for index, row in df_end_date_info.iterrows():
 
     month_data_df_5min = reduce(lambda left,right: pd.merge(left,right,on='時間', how='outer'), dfs)
     month_data_df_5min.to_csv(f'./{destanation_dir}{year}_{month}_{day}_{kind}每一分鐘資料.csv',index=False,encoding='utf-8-sig')
+
+#%%
+import glob
+import re
+from itertools import product
+
+import pandas as pd
+
+# Step 1: Find all CSV files in the directory
+csv_files = glob.glob('./data/每一分鐘資料/*.csv')
+
+# Step 2: Read each CSV file and store in a list
+# dfs = [pd.read_csv(file, encoding='utf-8') for file in csv_files]
+new_dfs = pd.DataFrame()
+for file in csv_files:
+    df = pd.read_csv(file, encoding='utf-8')
+
+    price_list = [re.search(r'(\d+)_delta$', col).group(1) for col in df.columns if re.search(r'\d+_delta$', col)]
+    time_list = df['時間'].unique().tolist()
+    cp = ['C','P']
+
+
+    new_df = pd.DataFrame(list(product(time_list, price_list, cp)), columns=['時間', '履約價', '買賣權'])
+
+    # new_df['價格']
+
+    for index, row in new_df.iterrows():
+        # index = 0
+        # row = new_df.iloc[index]
+        new_df.at[index, '選擇權價格'] = float(df.loc[df['時間'] == row['時間'], f'{row["買賣權"]}_{row["履約價"]}_成交價'].iloc[0])
+        new_df.at[index,'選擇權成交量'] = int(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_成交量'].iloc[0])
+        new_df.at[index,'指數價格'] = float(df.loc[(df['時間'] == row['時間'])]['發行量加權股價指數'].iloc[0])
+        new_df.at[index,'期貨價格'] = float(df.loc[(df['時間'] == row['時間'])]['期貨_成交價'].iloc[0])
+        new_df.at[index,'期貨成交量'] = float(df.loc[(df['時間'] == row['時間'])]['期貨_成交量'].iloc[0])
+
+
+    def classify_option(row):
+        k_s_ratio = row['履約價'] / row['指數價格']
+        if row['買賣權'] == 'C':  # 買權
+            if 0.94 <= k_s_ratio < 0.97:
+                return '深度價內 (DITM)'
+            elif 0.97 <= k_s_ratio < 0.99:
+                return '價內 (ITM)'
+            elif 0.99 <= k_s_ratio < 1.01:
+                return '價平 (ATM)'
+            elif 1.01 <= k_s_ratio < 1.03:
+                return '價外 (OTM)'
+            elif 1.03 <= k_s_ratio < 1.06:
+                return '深度價外 (DOTM)'
+        elif row['買賣權'] == 'P':  # 賣權
+            if 1.03 <= k_s_ratio < 1.06:
+                return '深度價內 (DITM)'
+            elif 1.01 <= k_s_ratio < 1.03:
+                return '價內 (ITM)'
+            elif 0.99 <= k_s_ratio < 1.01:
+                return '價平 (ATM)'
+            elif 0.97 <= k_s_ratio < 0.99:
+                return '價外 (OTM)'
+            elif 0.94 <= k_s_ratio < 0.97:
+                return '深度價外 (DOTM)'
+        return '未知'
+
+    new_df['履約價'] = new_df['履約價'].astype(int)
+    ## 價性 k/s
+    new_df['價性'] = new_df.apply(classify_option, axis=1)
+
+    new_dfs = pd.concat([new_dfs, new_df])
+
+new_dfs.to_csv('./data/每一分鐘資料_整理.csv', index=False, encoding='utf-8-sig')
+
 
 
 
