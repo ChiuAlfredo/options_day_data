@@ -96,8 +96,8 @@ df_all.to_csv(
 def f_test(df_0, df_10):
 
     # 步骤 1: 计算两个日期区间内每日波动率的方差
-    variance_0 = df_0['每日價格波動率'].var(ddof=1) / np.sqrt(252)
-    variance_10 = df_10['每日價格波動率'].var(ddof=1) / np.sqrt(252)
+    variance_0 = df_0['每日價格波動率'].var(ddof=1) * np.sqrt(252)
+    variance_10 = df_10['每日價格波動率'].var(ddof=1) * np.sqrt(252)
 
     # # 确保 variance_0 是较大的方差
     # if variance_0 < variance_10:
