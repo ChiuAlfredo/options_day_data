@@ -1,0 +1,115 @@
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
+from openpyxl.utils.cell import get_column_letter
+import os
+
+# 讀取Excel文件
+df = pd.read_csv("每一分鐘資料整理.csv")
+
+# 將 '時間' 列轉換為datetime格式，只提取時間部分
+df['Time'] = pd.to_datetime(df['時間'], errors='coerce').dt.time
+
+# 定義時間範圍
+start_time = pd.to_datetime('09:00:00').time()
+end_time = pd.to_datetime('13:29:00').time()
+
+# 篩選時間範圍
+timefiltered_df = df[(df['Time'] >= start_time) & (df['Time'] <= end_time)]
+
+# 篩選 '價性' & '類型'
+option_C="C"
+option_P="P"
+
+dotm="深度價外 (DOTM)"
+dotmdf_C = timefiltered_df[(timefiltered_df['價性'] == dotm) & (timefiltered_df['買賣權'] == option_C)].copy()
+dotmdf_P = timefiltered_df[(timefiltered_df['價性'] == dotm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+otm="價外 (OTM)"
+otmdf_C = timefiltered_df[(timefiltered_df['價性'] == otm) & (timefiltered_df['買賣權'] == option_C)].copy()
+otmdf_P = timefiltered_df[(timefiltered_df['價性'] == otm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+atm="價平 (ATM)"
+atmdf_C = timefiltered_df[(timefiltered_df['價性'] == atm) & (timefiltered_df['買賣權'] == option_C)].copy()
+atmdf_P = timefiltered_df[(timefiltered_df['價性'] == atm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+itm="價內 (ITM)"
+itmdf_C = timefiltered_df[(timefiltered_df['價性'] == itm) & (timefiltered_df['買賣權'] == option_C)].copy()
+itmdf_P = timefiltered_df[(timefiltered_df['價性'] == itm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+ditm="深度價內 (DITM)"
+ditmdf_C = timefiltered_df[(timefiltered_df['價性'] == ditm) & (timefiltered_df['買賣權'] == option_C)].copy()
+ditmdf_P = timefiltered_df[(timefiltered_df['價性'] == ditm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+# 計算 '選擇權成交價變化率' 和 '選擇權成交量變化率' 的相關係數並四捨五入到小數第四位，略過空值
+correlationdotm_C = dotmdf_C['選擇權成交價變化率'].corr(dotmdf_C['選擇權成交量變化率'])
+roundeddotm_C = round(correlationdotm_C, 4)
+correlationdotm_P = dotmdf_P['選擇權成交價變化率'].corr(dotmdf_P['選擇權成交量變化率'])
+roundeddotm_P = round(correlationdotm_P, 4)
+
+correlationotm_C = otmdf_C['選擇權成交價變化率'].corr(otmdf_C['選擇權成交量變化率'])
+roundedotm_C = round(correlationotm_C, 4)
+correlationotm_P = otmdf_P['選擇權成交價變化率'].corr(otmdf_P['選擇權成交量變化率'])
+roundedotm_P = round(correlationotm_P, 4)
+
+correlationatm_C = atmdf_C['選擇權成交價變化率'].corr(atmdf_C['選擇權成交量變化率'])
+roundedatm_C = round(correlationatm_C, 4)
+correlationatm_P = atmdf_P['選擇權成交價變化率'].corr(atmdf_P['選擇權成交量變化率'])
+roundedatm_P = round(correlationatm_P, 4)
+
+correlationitm_C = itmdf_C['選擇權成交價變化率'].corr(itmdf_C['選擇權成交量變化率'])
+roundeditm_C = round(correlationitm_C, 4)
+correlationitm_P = itmdf_P['選擇權成交價變化率'].corr(itmdf_P['選擇權成交量變化率'])
+roundeditm_P = round(correlationitm_P, 4)
+
+correlationditm_C = ditmdf_C['選擇權成交價變化率'].corr(ditmdf_C['選擇權成交量變化率'])
+roundedditm_C = round(correlationditm_C, 4)
+correlationditm_P = ditmdf_P['選擇權成交價變化率'].corr(ditmdf_P['選擇權成交量變化率'])
+roundedditm_P = round(correlationditm_P, 4)
+# 計算資料筆數
+rowsdotm_C = dotmdf_C['選擇權成交價變化率'].notna().sum()-1
+rowsdotm_P = dotmdf_P['選擇權成交價變化率'].notna().sum()-1
+
+rowsotm_C = otmdf_C['選擇權成交價變化率'].notna().sum()-1
+rowsotm_P = otmdf_P['選擇權成交價變化率'].notna().sum()-1
+
+rowsatm_C = atmdf_C['選擇權成交價變化率'].notna().sum()-1
+rowsatm_P = atmdf_P['選擇權成交價變化率'].notna().sum()-1
+
+rowsitm_C = itmdf_C['選擇權成交價變化率'].notna().sum()-1
+rowsitm_P = itmdf_P['選擇權成交價變化率'].notna().sum()-1
+
+rowsditm_C = ditmdf_C['選擇權成交價變化率'].notna().sum()-1
+rowsditm_P = ditmdf_P['選擇權成交價變化率'].notna().sum()-1
+
+# 顯示相關係數 & 資料數
+print(dotm,option_C)
+print(f"{roundeddotm_C}")
+print(f"{rowsdotm_C}")
+print(dotm,option_P)
+print(f"{roundeddotm_P}")
+print(f"{rowsdotm_P}")
+print(otm,option_C)
+print(f"{roundedotm_C}")
+print(f"{rowsotm_C}")
+print(otm,option_P)
+print(f"{roundedotm_P}")
+print(f"{rowsotm_P}")
+print(atm,option_C)
+print(f"{roundedatm_C}")
+print(f"{rowsatm_C}")
+print(atm,option_P)
+print(f"{roundedatm_P}")
+print(f"{rowsatm_P}")
+print(itm,option_C)
+print(f"{roundeditm_C}")
+print(f"{rowsitm_C}")
+print(itm,option_P)
+print(f"{roundeditm_P}")
+print(f"{rowsitm_P}")
+print(ditm,option_C)
+print(f"{roundedditm_C}")
+print(f"{rowsditm_C}")
+print(ditm,option_P)
+print(f"{roundedditm_P}")
+print(f"{rowsditm_P}")
