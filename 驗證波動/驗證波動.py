@@ -79,7 +79,7 @@ for code in df_all['證券代碼'].unique():
         actual_dates_count = dates.isin(all_dates).sum()
 
         # 更新剩餘有資料的天數
-        df_all.at[index, '剩餘天數'] = actual_dates_count - 1  # 减去当天
+        df_all.at[index, '剩餘天數'] = actual_dates_count 
 
 
 # 計算波動
@@ -96,8 +96,11 @@ df_all.to_csv(
 def f_test(df_0, df_10):
 
     # 步骤 1: 计算两个日期区间内每日波动率的方差
-    variance_0 = df_0['每日價格波動率'].var(ddof=1) * np.sqrt(252)
-    variance_10 = df_10['每日價格波動率'].var(ddof=1) * np.sqrt(252)
+    std_0 = df_0['每日價格波動率'].std(ddof=1) * np.sqrt(252)
+    std_10 = df_10['每日價格波動率'].std(ddof=1) * np.sqrt(252)
+
+    variance_0 = std_0**2
+    variance_10 = std_10**2
 
     # # 确保 variance_0 是较大的方差
     # if variance_0 < variance_10:
@@ -120,7 +123,7 @@ def f_test(df_0, df_10):
     F_value = round(F_value, 5)
     p_value = round(p_value, 5)
 
-    return variance_0, variance_10, F_value, p_value
+    return std_0, std_10, F_value, p_value
 
 
 def perform_f_test(
@@ -145,7 +148,7 @@ def perform_f_test(
 
     # 执行 f_test 并打印结果
 
-    variance_0, variance_10, F_value, p_value = f_test(df_0=df_0, df_10=df_10)
+    std_0, std_10, F_value, p_value = f_test(df_0=df_0, df_10=df_10)
 
     degreefreedom_0 = len(df_0) - 1
     degreefreedom_10 = len(df_10) - 1
@@ -156,13 +159,13 @@ def perform_f_test(
     # plt.show()
     print(f'{option_type} {price_type}\n')
     print(
-        f'結算{day_1}內波動率: {variance_0}\n結算{day_2}內波動率: {variance_10}\n f值: {F_value}\n p值: {p_value}'
+        f'結算{day_1}內年化波動: {std_0}\n結算{day_2}內波動年化波動: {std_10}\n f值: {F_value}\n p值: {p_value}'
     )
     alpha = 0.05  # 常用的显著性水平
     if p_value < alpha:
-        print('波率存在顯著差異')
+        print('年化波動存在顯著差異')
     else:
-        print('波率不存在顯著差異')
+        print('年化波動不存在顯著差異')
 
     # 确保图表的存储文件夹存在
     if not os.path.exists(images_folder_path):
@@ -180,10 +183,10 @@ def perform_f_test(
     plt.figure(figsize=(8, 6))
     plt.boxplot(
         [df_0['每日價格波動率'], df_10['每日價格波動率']],
-        labels=[f'結算{day_1}日內', f'結算{day_2}日內'],
+        labels=[f'結算{0}-{day_1}日內', f'結算{day_2+1}-{day_2}日內'],
     )
-    plt.title('波動比較')
-    plt.ylabel('值')
+    plt.title(f'{option_type} {price_type}日報酬箱線圖')
+    plt.ylabel('日報酬')
     plt.savefig(temp_image_path)
     plt.close()
 
@@ -200,19 +203,19 @@ def perform_f_test(
         md_file.write(f"## {option_type} {price_type}\n\n")
         md_file.write(
             f'''
-            - 結算{day_1+1}日內波動率: {variance_0}\n
-            - 結算{day_2+1}日內波動率(不含{day_1+1}日內): {variance_10}\n
-            - 結算{day_1}日內自由度: {degreefreedom_0}\n
-            - 結算{day_2}日內自由度(不含{day_1+1}日內): {degreefreedom_10}\n
+            - 結算{0}-{day_1}日內年化波動: {std_0}\n
+            - 結算{day_1+1}-{day_2}日內年化波動: {std_10}\n
+            - 結算{0}-{day_1}日內自由度: {degreefreedom_0}\n
+            - 結算{day_1+1}-{day_2}日內自由度: {degreefreedom_10}\n
             - f值: {F_value}\n
             - p值: {p_value}\n
             - alpha值: {alpha}\n\n'''
         )
         md_file.write(f"""- **結論**: {(
-            '波率存在顯著差異' if p_value < alpha else '波率不存在顯著差異'
+            '年化波動存在顯著差異' if p_value < alpha else '年化波動不存在顯著差異'
         )}\n\n""")
         md_file.write(
-            f"![{option_type} {price_type} 波動比較]({relative_image_path})\n\n"
+            f"![{option_type} {price_type} 每日報酬率比較]({relative_image_path})\n\n"
         )
 
 
