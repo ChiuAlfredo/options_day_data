@@ -23,9 +23,11 @@ plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑體字
 plt.rcParams['axes.unicode_minus'] = False  # 解決座標軸負號顯示問題
 
 # 創建散佈圖
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(10, 10))
 plt.scatter(timefiltered_df['期貨_成交價 變化比'], timefiltered_df['發行量加權股價指數 變化比'], alpha=0.6)
 plt.title('臺指期成交價變化率與加權指數變化率散佈圖', fontsize=25)
+plt.ylim(-50,100)
+plt.xlim(-50,100)
 plt.xlabel('Delta F/F', fontsize=20)
 plt.ylabel('Delta S/S', fontsize=20)
 plt.grid(True)
