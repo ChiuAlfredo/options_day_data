@@ -120,8 +120,8 @@ def f_test(df_0, df_10):
     # 判断差异是否显著
     variance_0 = round(variance_0, 5)
     variance_10 = round(variance_10, 5)
-    F_value = round(F_value, 5)
-    p_value = round(p_value, 5)
+    F_value = F_value
+    p_value = p_value
 
     return std_0, std_10, F_value, p_value
 
@@ -185,6 +185,7 @@ def perform_f_test(
         [df_0['每日價格波動率'], df_10['每日價格波動率']],
         labels=[f'結算{0}-{day_1}日內', f'結算{day_2+1}-{day_2}日內'],
     )
+    plt.ylim(-8,8)
     plt.title(f'{option_type} {price_type}日報酬箱線圖')
     plt.ylabel('日報酬')
     plt.savefig(temp_image_path)
