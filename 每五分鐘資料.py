@@ -20,11 +20,11 @@ end_time = pd.to_datetime('13:30:00').time()
 
 # 篩選時間範圍，並排除09:00:00的數據
 filtered_df = df[(df['Time'] > start_time) & (df['Time'] <= end_time)]
-filtered_df1 = filtered_df[filtered_df['Datetime'] != pd.to_datetime('2021-01-06 09:00:00')]
+filtered_df_without9 = filtered_df[filtered_df['Datetime'] != pd.to_datetime('2021-01-06 09:00:00')]
 
 # 按履約價和每5分鐘分組計算總和
-grouped_df = filtered_df.groupby(['履約價', '買賣權', pd.Grouper(key='Datetime', freq='5min')]).sum().reset_index()
+grouped_df = filtered_df_without9.groupby(['履約價', '買賣權', pd.Grouper(key='Datetime', freq='5min')]).sum().reset_index()
 
 # 選擇所需的列並打印
-selected_columns = filtered_df[['履約價', '買賣權', 'Datetime', '指數價格變化率']]
+selected_columns = grouped_df[['履約價', '買賣權', 'Datetime', '指數價格變化率']]
 print(selected_columns)
