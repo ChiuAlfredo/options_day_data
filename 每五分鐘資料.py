@@ -1,3 +1,4 @@
+#我把filtered_df裡的9.的資料拿掉了 print出來的filtered_df_without9沒有問題 但grouped_df裡還是有9.的值
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
