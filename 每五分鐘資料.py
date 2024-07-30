@@ -16,16 +16,17 @@ df['Time'] = df['Datetime'].dt.time
 
 # 定義時間範圍
 start_time = pd.to_datetime('09:01:00').time()
-end_time = pd.to_datetime('13:29:00').time()
+end_time = pd.to_datetime('13:30:00').time()
 
-# 篩選時間範圍
-timefiltered_df = df[(df['Time'] >= start_time) & (df['Time'] <= end_time)].copy()
+# 篩選時間範圍，並排除09:00:00的數據
+filtered_df = df[(df['Time'] > start_time) & (df['Time'] <= end_time)]
+
+# 如果要排除特定的行，可以使用以下方式
+filtered_df = filtered_df[filtered_df['Datetime'] != pd.to_datetime('2021/1/6 09:00:00')]
 
 # 按履約價和每5分鐘分組計算總和
-grouped_df = timefiltered_df.groupby(['履約價','買賣權', pd.Grouper(key='Datetime', freq='5min')]).sum().reset_index()
+grouped_df = filtered_df.groupby(['履約價', '買賣權', pd.Grouper(key='Datetime', freq='5min')]).sum().reset_index()
 
-# 將結果輸出到新的Excel文件
-output_file = "C:/Users/ASUS/Desktop/grouped_data_by_strike_price1.xlsx"
-grouped_df.to_excel(output_file, sheet_name='Grouped Data', index=False)
-
-print(f"數據已成功輸出到 {output_file}")
+# 選擇所需的列並打印
+selected_columns = grouped_df[['履約價', '買賣權', 'Datetime', '指數價格變化率']]
+print(selected_columns)
