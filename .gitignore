@@ -170,3 +170,4 @@ data/*
 
 .DS
 .DS_Store
+*.pkl
