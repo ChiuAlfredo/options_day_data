@@ -36,12 +36,12 @@ def read_index(year, month, day, kind):
     )
 
     # 取樣間隔為五筆資料
-    df_index_new = df_index.iloc[::12]
+    df_index_new = df_index.iloc[::15]
     df_index_new = df_index_new[:-1]
     
-    df_index_new = pd.concat([df_index_new,df_index.iloc[-12:]])
+    df_index_new = pd.concat([df_index_new,df_index.iloc[-2:-1]])
 
-    df_index_new = df_index_new.iloc[:-12]
+    # df_index_new = df_index_new.iloc[:-180]
     
 
     df_index_new = df_index_new[['時間','發行量加權股價指數','time']]
@@ -103,12 +103,6 @@ def read_future_price(file_path):
 def get_delta(month_index,strike_price_list):
     df_delta = pd.DataFrame()
     for k in strike_price_list:
-        # S = df_merged['發行量加權股價指數'][0]
-        r = 0.00795
-
-        # K = 16300
-        # T = df_merged['time'][0]
-        sigma = 0.209223
         
 
         df_delta[f'{k}_delta'] = month_index.apply(
@@ -116,8 +110,8 @@ def get_delta(month_index,strike_price_list):
                 BS_formula(
                     row['發行量加權股價指數'],
                     k,
-                    r,
-                    sigma,
+                    row['no_risk_return'],
+                    row['vix'],
                     row['time'],
                 )
                 ).BS_delta()[0]
@@ -132,21 +126,14 @@ def get_delta(month_index,strike_price_list):
 def get_gamma(month_index,strike_price_list):
     df_gamma = pd.DataFrame()
     for k in strike_price_list:
-        # S = df_merged['發行量加權股價指數'][0]
-        r = 0.00795
-
-        # K = 16300
-        # T = df_merged['time'][0]
-        sigma = 0.209223
-        
 
         df_gamma[f'{k}_gamma'] = month_index.apply(
             lambda row: (
                 BS_formula(
                     row['發行量加權股價指數'],
                     k,
-                    r,
-                    sigma,
+                    row['no_risk_return'],
+                    row['vix'],
                     row['time'],
                 )
                 ).BS_gamma()[0]
@@ -175,8 +162,8 @@ def get_bs_price_c(month_index,strike_price_list):
                 BS_formula(
                     row['發行量加權股價指數'],
                     k,
-                    r,
-                    sigma,
+                    row['no_risk_return'],
+                    row['vix'],
                     row['time'],
                 )
             ).BS_price()[0]
@@ -188,8 +175,8 @@ def get_bs_price_c(month_index,strike_price_list):
                 BS_formula(
                     row['發行量加權股價指數'],
                     k,
-                    r,
-                    sigma,
+                    row['no_risk_return'],
+                    row['vix'],
                     row['time'],
                 )
             ).BS_price()[1]
@@ -279,12 +266,42 @@ def get_future_price(month_future_price_df):
             
     return df_price
 
+def get_vix(year,month,day,df_vix):
+
+    date = pd.to_datetime(f'{year}-{month}-{day}').date()
+
+    matching_row = df_vix[df_vix['時間'] == date]
+
+    # 如果找到匹配的行，則返回 '開盤價'
+    if not matching_row.empty:
+        return matching_row['開盤價'].values[0]/100
+    else:
+        return None
+
+def get_no_risk_return(year,month,day,df_no_risk_return):
+    
+    date = pd.to_datetime(f'{year}-{month}-{day}').date()
+
+    matching_row = df_no_risk_return[df_no_risk_return['時間'] == date]
+
+    # 如果找到匹配的行，則返回 '開盤價'
+    if not matching_row.empty:
+        return matching_row['開盤價'].values[0]/100
+    else:
+        return None
+
 
 df_end_date_info = pd.read_excel('結算日日期和種類.xlsx')
 
 # 將月份和日期轉換為兩位數格式
 df_end_date_info['月'] = df_end_date_info['月'].astype(str).str.zfill(2)
 df_end_date_info['日'] = df_end_date_info['日'].astype(str).str.zfill(2)
+
+df_vix = pd.read_excel('data/vix/vix.xlsx')
+df_vix['時間'] = pd.to_datetime(df_vix['時間'], format='%Y-%m-%d').dt.date
+
+df_no_risk_return = pd.read_excel('data/公債/公債.xlsx')
+df_no_risk_return['時間'] = pd.to_datetime(df_no_risk_return['時間'], format='%Y-%m-%d').dt.date
 
 for index, row in df_end_date_info.iterrows():
     # row = df_end_date_info.iloc[0]
@@ -332,6 +349,11 @@ for index, row in df_end_date_info.iterrows():
     df_price_c.columns = [f"C_{col}" for col in df_price_c.columns]
     df_price_p.columns = [f"P_{col}" for col in df_price_p.columns]
 
+    vix_value = get_vix(year,month,day,df_vix)
+    no_risk_return = get_no_risk_return(year,month,day,df_no_risk_return)
+
+    month_index['vix'] = vix_value
+    month_index['no_risk_return'] = no_risk_return
 
 
     df_delta = get_delta(month_index,strike_price_list)
@@ -444,7 +466,9 @@ for file in csv_files:
         new_df.at[index,'選擇權成交價變化率'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_成交價_變化率'].iloc[0])
         new_df.at[index,'選擇權成交量變化率'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_成交量_變化率'].iloc[0])
         new_df.at[index,'real_delta'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_real_delta'].iloc[0])
+        new_df.at[index,'bs_delta'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["履約價"]}_delta'].iloc[0])
         new_df.at[index,'real_gamma'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["買賣權"]}_{row["履約價"]}_real_gamma'].iloc[0])
+        new_df.at[index,'bs_gamms'] = float(df.loc[(df['時間'] == row['時間'])][f'{row["履約價"]}_gamma'].iloc[0])
 
     def classify_option(row):
         k_s_ratio = row['履約價'] / row['指數價格']
@@ -478,7 +502,7 @@ for file in csv_files:
 
     new_dfs = pd.concat([new_dfs, new_df])
 
-new_dfs.to_csv('./data/每一分鐘資料_整理.csv', index=False, encoding='utf-8-sig')
+new_dfs.to_csv('./data/每ㄧ分鐘資料_整理.csv', index=False, encoding='utf-8-sig')
 
 
 
