@@ -216,8 +216,8 @@ df_end_date_info['商品代號'] = df_end_date_info.apply(create_product_code, a
 
 
 # Define the date range
-start_date_str = '2023-1-01'
-end_date_str = '2023-12-31'
+start_date_str = '2020-1-01'
+end_date_str = '2024-8-07'
 
 # Parse the date strings into datetime objects
 start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
@@ -331,35 +331,46 @@ merged_df['參考s'] = np.where(merged_df['差異'] < pd.Timedelta('0 days 00:30
 # merged_df['bs_price'] = merged_df.apply(get_bs_price, axis=1)
 
 
+# 先篩選 T 不為 0 的數據
+filtered_df = merged_df[merged_df['T'] != 0]
+
 # 計算所有指標並輸出到 DataFrame 中
 bs_formula = BS_formula(
-    merged_df['參考s'],
-    merged_df['履約價格'],
-    merged_df['公債'],
-    merged_df['vix'],
-    merged_df['T'],
+    filtered_df['參考s'],
+    filtered_df['履約價格'],
+    filtered_df['公債'],
+    filtered_df['vix'],
+    filtered_df['T'],
+    filtered_df['選擇權_收盤價']
 )
 
-merged_df['bs_price'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_price()[0], bs_formula.BS_price()[1])
+filtered_df['bs_price'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.BS_price()[0], bs_formula.BS_price()[1])
 
-# merged_df['delta'] = bs_formula.BS_delta()[0].round(7)
-merged_df['delta'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_delta()[0].round(7), bs_formula.BS_delta()[1].round(7))
+filtered_df['delta'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.BS_delta()[0].round(7), bs_formula.BS_delta()[1].round(7))
 
-# merged_df['gamma'] = bs_formula.BS_gamma()[0].round(7)
-merged_df['gamma'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_gamma()[0].round(7), bs_formula.BS_gamma()[1].round(7))
+filtered_df['gamma'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.BS_gamma()[0].round(7), bs_formula.BS_gamma()[1].round(7))
 
+filtered_df['vega'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.BS_vega()[0].round(7), bs_formula.BS_vega()[1].round(7))
 
-merged_df['vega'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_vega()[0].round(7), bs_formula.BS_vega()[1].round(7))
+filtered_df['rho'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.BS_rho()[0].round(7), bs_formula.BS_rho()[1].round(7))
 
+filtered_df['theta'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.BS_theta()[0], bs_formula.BS_theta()[1])
 
-# merged_df['rho'] = bs_formula.BS_rho()[0]
-merged_df['rho'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_rho()[0].round(7), bs_formula.BS_rho()[1].round(7))
+filtered_df['iv'] = np.where(filtered_df['買賣權別'] == 'C', bs_formula.iv()[0].round(4), bs_formula.iv()[1].round(4))
 
+# 將計算結果合併回原始 DataFrame
+merged_df = merged_df.assign(
+    bs_price=np.nan,
+    delta=np.nan,
+    gamma=np.nan,
+    vega=np.nan,
+    rho=np.nan,
+    theta=np.nan,
+    iv=np.nan
+)
 
-# bs_theta = bs_formula.BS_theta()
-merged_df['theta'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_theta()[0],bs_formula.BS_theta()[1])
-
-
+# 將計算結果合併回原始 DataFrame
+merged_df.update(filtered_df)
 
 # # 使用 apply 方法一次性計算所有指標並輸出到 DataFrame 中
 # metrics_df = merged_df.apply(get_bs_metrics, axis=1, result_type='expand')
@@ -368,5 +379,5 @@ merged_df['theta'] = np.where(merged_df['買賣權別'] == 'C', bs_formula.BS_th
 # merged_df = pd.concat([merged_df, metrics_df], axis=1)
 
 
-output_df = merged_df[merged_df['整天數'] <=5]
+output_df = merged_df[merged_df['整天數'] <=7]
 output_df.to_pickle(f'merged_df{start_date_str}-{end_date_str}.pkl')
