@@ -68,8 +68,8 @@ for index, row in end_date_df.iterrows():
     # index = 1
     if index == 0:
         continue
-    # elif index >10:
-    #     break
+    elif index >5:
+        break
     # elif index <388:
     #     continue
     else:

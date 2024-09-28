@@ -23,7 +23,7 @@ def read_index(start_date,end_date):
 
 
     # 連接到MongoDB
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    client = pymongo.MongoClient("mongodb://140.118.60.18:27017/")
     db = client["option_price"]
     collection = db["index"]
 
@@ -50,7 +50,7 @@ def read_option_price(start_date,end_date,week_kind):
 
 
     # 連接到MongoDB
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    client = pymongo.MongoClient("mongodb://140.118.60.18:27017/")
     db = client["option_price"]
     collection = db["option"]
 
@@ -84,7 +84,7 @@ def read_future_price(start_date,end_date):
 
 
     # 連接到MongoDB
-    client = pymongo.MongoClient("mongodb://localhost:27017/")
+    client = pymongo.MongoClient("mongodb://140.118.60.18:27017/")
     db = client["option_price"]
     collection = db["future"]
 
@@ -243,17 +243,17 @@ def buil_Data(month_option_price_df,month_future_price_df_raw,month_index,end_da
 
     # 加入VIX指數
     vix_index = pd.read_excel('vix.xlsx')
-    vix_index['時間'] = pd.to_datetime(vix_index['時間'])
+    vix_index['時間'] = pd.to_datetime(vix_index['日期'])
     vix_index['時間代碼'] = vix_index['時間'].dt.strftime('%Y%m%d')
-    vix_index['vix'] = vix_index['開盤價']/100
+    vix_index['vix'] = vix_index['收盤價']/100
     merged_df = pd.merge(merged_df, vix_index[['時間代碼','vix']], left_on='成交日期_option', right_on='時間代碼', how='left')
 
 
     # 加入公債
     bond_index = pd.read_excel('公債.xlsx')
-    bond_index['時間'] = pd.to_datetime(bond_index['時間'])
+    bond_index['時間'] = pd.to_datetime(bond_index['日期'])
     bond_index['時間代碼'] = bond_index['時間'].dt.strftime('%Y%m%d')
-    bond_index['公債'] = bond_index['開盤價']/100
+    bond_index['公債'] = bond_index['殖利率(%)']/100
     merged_df = pd.merge(merged_df, bond_index[['時間代碼','公債']], left_on='成交日期_option', right_on='時間代碼', how='left')
 
     # 計算T
