@@ -166,7 +166,7 @@ data/group/2_C_TX1.gzip
 *.zip
 選擇權.txt
 data/*
-*.xlsx
+# *.xlsx
 
 .DS
 .DS_Store
