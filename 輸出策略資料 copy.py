@@ -216,7 +216,7 @@ df_end_date_info['商品代號'] = df_end_date_info.apply(create_product_code, a
 
 
 # Define the date range
-start_date_str = '2020-1-01'
+start_date_str = '2022-1-01'
 end_date_str = '2024-8-07'
 
 # Parse the date strings into datetime objects
@@ -228,6 +228,13 @@ month_option_price_df = read_option_price(start_date,end_date)
 month_future_price_df_raw = read_future_price(start_date,end_date) 
 
 month_index = read_index(start_date,end_date) 
+
+
+month_option_price_df.to_pickle(f'month_option_price_df{start_date_str}-{end_date_str}.pkl')
+month_future_price_df_raw.to_pickle(f'month_future_price_df_raw{start_date_str}-{end_date_str}.pkl')
+month_index.to_pickle(f'month_index{start_date_str}-{end_date_str}.pkl')
+
+
 
 # 確保 '到期月份(週別)' 列是數字類型
 month_future_price_df_raw['到期月份(週別)'] = pd.to_numeric(month_future_price_df_raw['到期月份(週別)'], errors='coerce')

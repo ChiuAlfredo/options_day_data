@@ -23,8 +23,6 @@ pd.options.mode.use_inf_as_na = True
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 
-
-
 end_date_df = read_end_date()
 
 
@@ -68,6 +66,8 @@ for index, row in end_date_df.iterrows():
         
         
         all_data = pd.concat([all_data,merged_df],ignore_index=True)
+
+
 
 
 
@@ -132,3 +132,60 @@ grouped_data = filtered_data.groupby(['價平檔位', '時間分組','買賣權�
 ).reset_index()
 
 grouped_data.to_csv('iv.csv',encoding='utf-8-sig')
+
+
+
+
+
+import pandas as pd
+from datetime import timedelta
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 讀取數據
+df = pd.read_pickle('merged_df2022-8-24-2024-8-7.pkl')
+
+# 計算價平差距
+df['價平差距'] = df['參考s'] - df['履約價格']
+
+# 定義篩選管道
+def filter_pipeline(df, start_time, end_time):
+    # 根據指定的時間段篩選數據
+    df = df[(df['差異'] <= start_time) & (df['差異'] >= end_time)]
+    
+    # 篩選買賣權為P的資料
+    df = df[df['買賣權別'] == 'P']
+   
+    # 篩選價平差距為 +50 的資料
+    df = df[df['價平差距'] == 50]
+
+    return df
+
+# 使用篩選後的數據
+filtered_df = filter_pipeline(df, timedelta(days=0, hours=4, minutes=45), timedelta(days=0, hours=0, minutes=0))
+
+# 按照日期進行分組，並對每一天的成交量進行彙總
+grouped_df = filtered_df.groupby('成交日期_option').agg({
+    '選擇權_成交量': 'sum'  # 彙總當日的成交量
+}).reset_index()
+
+# 將成交量按 100 為一組進行分組
+grouped_df['成交量區間'] = pd.cut(grouped_df['選擇權_成交量'], bins=np.arange(0, grouped_df['選擇權_成交量'].max() + 100, 100))
+
+# 計算每個成交量區間的數量
+volume_counts = grouped_df.groupby('成交量區間').size()
+
+# 繪製柱狀圖
+plt.figure(figsize=(10, 6))
+volume_counts.plot(kind='bar', width=0.8)
+plt.xlabel('Volume')
+plt.ylabel('Times')
+plt.title('Put Volume & Times (Strike Price = +50)')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# 將篩選後的數據儲存為 CSV 檔案
+grouped_df.to_csv('Put Daily Volume Times (Strike Price = +50).csv', index=False, encoding='utf-8')
+
+print("資料已成功彙整並儲存為 'Put Daily Volume Times (Strike Price = +50).csv' (UTF-8 編碼)")
