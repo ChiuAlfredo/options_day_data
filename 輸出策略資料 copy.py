@@ -185,7 +185,7 @@ def get_bs_metrics(row):
 
 
 
-df_end_date_info = pd.read_excel('結算日日期和種類 (1).xlsx')
+df_end_date_info = pd.read_csv('結算日期.csv')
 
 # 將月份和日期轉換為兩位數格式
 df_end_date_info['年'] = df_end_date_info['年'].astype(str)
