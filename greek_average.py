@@ -3,9 +3,33 @@ import pandas as pd
 import numpy as np
 from datetime import timedelta
 from scipy.stats import ttest_ind
+from back_test_util.data_util import read_option_price, read_future_price, read_index, buil_Data, read_end_date
+from back_test_util.option_action import Option
 
 
-df = pd.read_pickle('merged_df2022-8-24-2024-8-7.pkl')
+start_date = '2022-01-01 08:45:00'
+end_date = '2024-06-12 13:30:00'
+
+end_date_df = read_end_date()
+
+
+print(start_date,end_date)
+
+# Parse the date strings into datetime objects
+# start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+# end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+
+week_kind = end_date_df['到期月份(週別)'][index-1]
+
+month_option_price_df = read_option_price(start_date,end_date ,week_kind) 
+
+month_future_price_df_raw = read_future_price(start_date,end_date) 
+
+month_index = read_index(start_date,end_date) 
+
+
+merged_df = buil_Data(month_option_price_df,month_future_price_df_raw,month_index,end_date_df)
+
 
 
 
@@ -39,6 +63,7 @@ grouped_df = filtered_df.groupby(['時間','價平檔位','買賣權別']).agg(
     'gamma': 'mean',
     'theta': 'mean',
     'vega': 'mean',
+    'iv':'mean'
 })
 
 filtered_grouped_df = grouped_df[(grouped_df.index.get_level_values('價平檔位') == -100) & 
@@ -46,7 +71,7 @@ filtered_grouped_df = grouped_df[(grouped_df.index.get_level_values('價平檔�
 
 
 
-groupfiltered_grouped_dfed_df.to_csv('filtered_grouped_df.csv',encoding='utf-8-sig')
+filtered_grouped_df.to_csv('filtered_grouped_df.csv',encoding='utf-8-sig')
 
 
 
