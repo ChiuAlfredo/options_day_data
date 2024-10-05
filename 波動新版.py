@@ -25,29 +25,29 @@ df_all['剩餘有資料的天數'] = 0
 df_all['每日價格波動率'] = np.log(df_all['選擇權_收盤價'] / df_all['選擇權_開盤價'])
 
 # %%
-def f_test(df_0, df_10):
+def f_test(df_0, df_6):
 
     # 步骤 1: 计算两个日期区间内每日波动率的方差
-    variance_0 = df_0['每日價格波動率'].var(ddof=1) / np.sqrt(252)
-    variance_10 = df_10['每日價格波動率'].var(ddof=1) / np.sqrt(252)
+    variance_0 = df_0['每日價格波動率'].var(ddof=1) * 252
+    variance_6 = df_6['每日價格波動率'].var(ddof=1) * 252
 
     # 步骤 2: 使用 F-test 公式来计算 F 值
-    F_value = variance_0 / variance_10
+    F_value = variance_0 / variance_6
 
     # 步骤 3: 计算自由度
     df_numerator = len(df_0) - 1
-    df_denominator = len(df_10) - 1
+    df_denominator = len(df_6) - 1
 
     # 使用 scipy 的 F 分布来计算 p 值
     p_value = 1 - stats.f.cdf(F_value, df_numerator, df_denominator)
 
     # 判断差异是否显著
     variance_0 = round(variance_0, 5)
-    variance_10 = round(variance_10, 5)
+    variance_6 = round(variance_6, 5)
     F_value = round(F_value, 5)
     p_value = round(p_value, 5)
 
-    return variance_0, variance_10, F_value, p_value
+    return variance_0, variance_6, F_value, p_value
 
 
 def perform_f_test(
@@ -64,27 +64,22 @@ def perform_f_test(
         (df['買賣權別'] == option_type) & (df['價平檔位'] == price_type)
     ]
 
-    # 分成0跟10天
+    # 分成0跟6天
     df_0 = df_filtered[df_filtered['整天數'] <= day_1]
-    df_10 = df_filtered[
+    df_6 = df_filtered[
         (df_filtered['整天數'] > day_1) & (df_filtered['整天數'] <= day_2)
     ]
 
     # 执行 f_test 并打印结果
 
-    variance_0, variance_10, F_value, p_value = f_test(df_0=df_0, df_10=df_10)
+    variance_0, variance_6, F_value, p_value = f_test(df_0=df_0, df_6=df_6)
 
     degreefreedom_0 = len(df_0) - 1
-    degreefreedom_10 = len(df_10) - 1
+    degreefreedom_6 = len(df_6) - 1
 
-    # # 柱狀圖f,p
-    # plt.bar(['F 值', '-log10(p) 值'], [F_value, -np.log10(p_value)])
-    # plt.title('F-test 结果')
-    # plt.show()
     print(f'{option_type} {price_type}\n')
     print(
-        f'結算{day_1}內波動率: {variance_0}\n結算{day_2}內波動率: {variance_10}\n f值: {F_value}\n p值: {p_value}'
-    )
+        f'結算{day_1}內波動率: {variance_0}\n樣本數:{degreefreedom_0}\n結算{day_2}內波動率: {variance_6}\n樣本數:{degreefreedom_6}\n f值: {F_value}\n p值: {p_value}')
     alpha = 0.05  # 常用的显著性水平
     if p_value < alpha:
         print('波率存在顯著差異')
@@ -110,8 +105,8 @@ def perform_f_test(
     # 箱線圖绘制并保存
     plt.figure(figsize=(8, 6))
     plt.boxplot(
-        [df_0['每日價格波動率'], df_10['每日價格波動率']],
-        labels=[f'結算{day_1}日內', f'結算{day_2}日內'],
+        [df_0['每日價格波動率'], df_6['每日價格波動率']],
+        tick_labels=[f'結算{day_1}日內', f'結算{day_2}日內'],
     )
     plt.title('波動比較')
     plt.ylabel('值')
@@ -132,9 +127,9 @@ def perform_f_test(
         md_file.write(
             f'''
             - 結算{day_1+1}日內波動率: {variance_0}\n
-            - 結算{day_2+1}日內波動率(不含{day_1+1}日內): {variance_10}\n
+            - 結算{day_2+1}日內波動率(不含{day_1+1}日內): {variance_6}\n
             - 結算{day_1}日內自由度: {degreefreedom_0}\n
-            - 結算{day_2}日內自由度(不含{day_1+1}日內): {degreefreedom_10}\n
+            - 結算{day_2}日內自由度(不含{day_1+1}日內): {degreefreedom_6}\n
             - f值: {F_value}\n
             - p值: {p_value}\n
             - alpha值: {alpha}\n\n'''
