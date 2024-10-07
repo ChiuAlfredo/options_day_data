@@ -88,7 +88,7 @@ all_data = pd.read_pickle('merged_df2022-8-24-2024-8-7.pkl')
 from datetime import datetime
 
 # 定義開始和結束的日期時間
-start_time = datetime.strptime('2024-08-15 9:30:00', '%Y-%m-%d %H:%M:%S')
+start_time = datetime.strptime('2024-08-15 9:00:00', '%Y-%m-%d %H:%M:%S')
 end_time = datetime.strptime('2024-08-21 13:30:00', '%Y-%m-%d %H:%M:%S')
 
 # 計算 timedelta
@@ -97,7 +97,7 @@ time_difference = end_time - start_time
 # 打印結果
 print(f"Time difference: {time_difference}") 
 
-time_list = [time_difference, time_difference- timedelta(hours=4), time_difference- timedelta(days=1), time_difference- timedelta(days=1,hours=4), time_difference- timedelta(days=4), time_difference- timedelta(days=4,hours=4),time_difference- timedelta(days=5), time_difference- timedelta(days=5,hours=4),time_difference- timedelta(days=6), time_difference- timedelta(days=6,hours=3),time_difference- timedelta(days=6,hours=3,minutes=30),time_difference- timedelta(days=6,hours=3,minutes=45) ]
+time_list = [time_difference, time_difference- timedelta(hours=4,minutes=30), time_difference- timedelta(days=1), time_difference- timedelta(days=1,hours=4), time_difference- timedelta(days=4), time_difference- timedelta(days=4,hours=4),time_difference- timedelta(days=5), time_difference- timedelta(days=5,hours=4),time_difference- timedelta(days=6), time_difference- timedelta(days=6,hours=3),time_difference- timedelta(days=6,hours=3,minutes=30),time_difference- timedelta(days=6,hours=3,minutes=45) ]
 
 strike_list = all_data['價平檔位'].unique()
 
