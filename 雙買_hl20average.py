@@ -255,7 +255,7 @@ def process_row(index, row, end_date_df, result_queue):
     # record_list.append(record_dict)
     
     
-#0.8 or 0.9
+#0.8 
 for average in [0.5,0.6,0.7,0.8,0.9,1]:
     # 使用多线程并行处理
     result_queue = queue.Queue()
@@ -285,6 +285,18 @@ for average in [0.5,0.6,0.7,0.8,0.9,1]:
         profit_list.append(profit)
 
     profit_list = [float(profit) for profit in profit_list]
+    
+    initial_cash = []
+    
+    for index,record in enumerate(record_list):
+        cash = 0
+
+        if record['選擇權紀錄'] != []:
+            cash +=record['選擇權紀錄'][1]['損益累計']
+
+        initial_cash.append(cash)
+
+    initial_cash = [float(cash) for cash in initial_cash]
 
     # 統計
     statistic_data_dict ={
@@ -310,6 +322,8 @@ for average in [0.5,0.6,0.7,0.8,0.9,1]:
         '失敗交易平均虧損':statistic_data_dict['虧損金額']/statistic_data_dict['虧損次數'],
         '平均獲利/平均虧損':(statistic_data_dict['獲利金額']/statistic_data_dict['獲利次數'])/(statistic_data_dict['虧損金額']/statistic_data_dict['虧損次數']),
         '平均每筆交易盈虧':(statistic_data_dict['獲利金額']+statistic_data_dict['虧損金額'])/(statistic_data_dict['獲利次數']+statistic_data_dict['虧損次數']),
+        '平均開倉成本':-sum(initial_cash)/len(initial_cash),
+        '淨利/成本':(statistic_data_dict['獲利金額']+statistic_data_dict['虧損金額'])/sum(initial_cash),
     }
 
     # 將 record_list 轉換為 DataFrame
