@@ -1,0 +1,170 @@
+import pandas as pd
+
+# 讀取CSV文件
+df = pd.read_csv("結算日每分鐘資料.csv")
+
+# 將 '時間' 列轉換為datetime格式，只提取時間部分
+df['Time'] = pd.to_datetime(df['時間'], errors='coerce').dt.time
+
+# 定義時間範圍
+start_time = pd.to_datetime('09:00:00').time()
+end_time = pd.to_datetime('13:29:00').time()
+
+# 篩選時間範圍
+timefiltered_df = df[(df['Time'] >= start_time) & (df['Time'] <= end_time)]
+
+# 篩選 '價性' & '類型'
+option_C = "C"
+option_P = "P"
+
+dotm = "深度價外 (DOTM)"
+dotmdf_C = timefiltered_df[(timefiltered_df['價性'] == dotm) & (timefiltered_df['買賣權'] == option_C)].copy()
+dotmdf_P = timefiltered_df[(timefiltered_df['價性'] == dotm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+otm = "價外 (OTM)"
+otmdf_C = timefiltered_df[(timefiltered_df['價性'] == otm) & (timefiltered_df['買賣權'] == option_C)].copy()
+otmdf_P = timefiltered_df[(timefiltered_df['價性'] == otm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+atm = "價平 (ATM)"
+atmdf_C = timefiltered_df[(timefiltered_df['價性'] == atm) & (timefiltered_df['買賣權'] == option_C)].copy()
+atmdf_P = timefiltered_df[(timefiltered_df['價性'] == atm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+itm = "價內 (ITM)"
+itmdf_C = timefiltered_df[(timefiltered_df['價性'] == itm) & (timefiltered_df['買賣權'] == option_C)].copy()
+itmdf_P = timefiltered_df[(timefiltered_df['價性'] == itm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+ditm = "深度價內 (DITM)"
+ditmdf_C = timefiltered_df[(timefiltered_df['價性'] == ditm) & (timefiltered_df['買賣權'] == option_C)].copy()
+ditmdf_P = timefiltered_df[(timefiltered_df['價性'] == ditm) & (timefiltered_df['買賣權'] == option_P)].copy()
+
+# 檢查是否有任何 NaN 值或非數值值
+for df in [dotmdf_C, dotmdf_P, otmdf_C, otmdf_P, atmdf_C, atmdf_P, itmdf_C, itmdf_P, ditmdf_C, ditmdf_P]:
+    df.dropna(subset=['選擇權成交價變化率', '選擇權成交量變化率'], inplace=True)
+    df['選擇權成交價變化率'] = pd.to_numeric(df['選擇權成交價變化率'], errors='coerce')
+    df['選擇權成交量變化率'] = pd.to_numeric(df['選擇權成交量變化率'], errors='coerce')
+
+# 計算 '選擇權成交價變化率' 和 '選擇權成交量變化率' 的相關係數並四捨五入到小數第四位
+correlationdotm_C = dotmdf_C['選擇權成交價變化率'].corr(dotmdf_C['選擇權成交量變化率'])
+roundeddotm_C = round(correlationdotm_C, 4) if not pd.isna(correlationdotm_C) else 'N/A'
+
+correlationdotm_P = dotmdf_P['選擇權成交價變化率'].corr(dotmdf_P['選擇權成交量變化率'])
+roundeddotm_P = round(correlationdotm_P, 4) if not pd.isna(correlationdotm_P) else 'N/A'
+
+correlationotm_C = otmdf_C['選擇權成交價變化率'].corr(otmdf_C['選擇權成交量變化率'])
+roundedotm_C = round(correlationotm_C, 4) if not pd.isna(correlationotm_C) else 'N/A'
+
+correlationotm_P = otmdf_P['選擇權成交價變化率'].corr(otmdf_P['選擇權成交量變化率'])
+roundedotm_P = round(correlationotm_P, 4) if not pd.isna(correlationotm_P) else 'N/A'
+
+correlationatm_C = atmdf_C['選擇權成交價變化率'].corr(atmdf_C['選擇權成交量變化率'])
+roundedatm_C = round(correlationatm_C, 4) if not pd.isna(correlationatm_C) else 'N/A'
+
+correlationatm_P = atmdf_P['選擇權成交價變化率'].corr(atmdf_P['選擇權成交量變化率'])
+roundedatm_P = round(correlationatm_P, 4) if not pd.isna(correlationatm_P) else 'N/A'
+
+correlationitm_C = itmdf_C['選擇權成交價變化率'].corr(itmdf_C['選擇權成交量變化率'])
+roundeditm_C = round(correlationitm_C, 4) if not pd.isna(correlationitm_C) else 'N/A'
+
+correlationitm_P = itmdf_P['選擇權成交價變化率'].corr(itmdf_P['選擇權成交量變化率'])
+roundeditm_P = round(correlationitm_P, 4) if not pd.isna(correlationitm_P) else 'N/A'
+
+correlationditm_C = ditmdf_C['選擇權成交價變化率'].corr(ditmdf_C['選擇權成交量變化率'])
+roundedditm_C = round(correlationditm_C, 4) if not pd.isna(correlationditm_C) else 'N/A'
+
+correlationditm_P = ditmdf_P['選擇權成交價變化率'].corr(ditmdf_P['選擇權成交量變化率'])
+roundedditm_P = round(correlationditm_P, 4) if not pd.isna(correlationditm_P) else 'N/A'
+
+# 計算資料筆數
+rowsdotm_C = dotmdf_C['選擇權成交價變化率'].notna().sum()
+rowsdotm_P = dotmdf_P['選擇權成交價變化率'].notna().sum()
+
+rowsotm_C = otmdf_C['選擇權成交價變化率'].notna().sum()
+rowsotm_P = otmdf_P['選擇權成交價變化率'].notna().sum()
+
+rowsatm_C = atmdf_C['選擇權成交價變化率'].notna().sum()
+rowsatm_P = atmdf_P['選擇權成交價變化率'].notna().sum()
+
+rowsitm_C = itmdf_C['選擇權成交價變化率'].notna().sum()
+rowsitm_P = itmdf_P['選擇權成交價變化率'].notna().sum()
+
+rowsditm_C = ditmdf_C['選擇權成交價變化率'].notna().sum()
+rowsditm_P = ditmdf_P['選擇權成交價變化率'].notna().sum()
+
+# 設置支持中文的字體
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑體字
+plt.rcParams['axes.unicode_minus'] = False  # 解決座標軸負號顯示問題
+
+# 創建散佈圖
+plt.figure(figsize=(10, 6))
+plt.scatter(dotmdf_C['選擇權成交價變化率'], dotmdf_C['選擇權成交量變化率'], alpha=0.6)
+plt.title('深度價外買權成交價報酬率與深度價外買權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('深度價外買權成交價報酬率', fontsize=20)
+plt.ylabel('深度價外買權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(dotmdf_P['選擇權成交價變化率'], dotmdf_P['選擇權成交量變化率'], alpha=0.6)
+plt.title('深度價外賣權成交價報酬率與深度價外賣權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('深度價外賣權成交價報酬率', fontsize=20)
+plt.ylabel('深度價外賣權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(otmdf_C['選擇權成交價變化率'], otmdf_C['選擇權成交量變化率'], alpha=0.6)
+plt.title('價外買權成交價報酬率與價外買權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('價外買權成交價報酬率', fontsize=20)
+plt.ylabel('價外買權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(otmdf_P['選擇權成交價變化率'], otmdf_P['選擇權成交量變化率'], alpha=0.6)
+plt.title('價外賣權成交價報酬率與價外賣權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('價外賣權成交價報酬率', fontsize=20)
+plt.ylabel('價外賣權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(atmdf_C['選擇權成交價變化率'], atmdf_C['選擇權成交量變化率'], alpha=0.6)
+plt.title('價平買權成交價報酬率與價平買權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('價平買權成交價報酬率', fontsize=20)
+plt.ylabel('價平買權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(atmdf_P['選擇權成交價變化率'], atmdf_P['選擇權成交量變化率'], alpha=0.6)
+plt.title('價平賣權成交價報酬率與價平賣權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('價平賣權成交價報酬率', fontsize=20)
+plt.ylabel('價平賣權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(itmdf_C['選擇權成交價變化率'], itmdf_C['選擇權成交量變化率'], alpha=0.6)
+plt.title('價內買權成交價報酬率與價內買權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('價內買權成交價報酬率', fontsize=20)
+plt.ylabel('價內買權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(itmdf_P['選擇權成交價變化率'], itmdf_P['選擇權成交量變化率'], alpha=0.6)
+plt.title('價內賣權成交價報酬率與價內賣權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('價內賣權成交價報酬率', fontsize=20)
+plt.ylabel('價內賣權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(ditmdf_C['選擇權成交價變化率'], ditmdf_C['選擇權成交量變化率'], alpha=0.6)
+plt.title('深度價內買權成交價報酬率與深度價內買權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('深度價內買權成交價報酬率', fontsize=20)
+plt.ylabel('深度價內買權成交量變化率', fontsize=20)
+plt.grid(True)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(ditmdf_P['選擇權成交價變化率'], ditmdf_P['選擇權成交量變化率'], alpha=0.6)
+plt.title('深度價內賣權成交價報酬率與深度價內賣權成交量變化率散佈圖', fontsize=25)
+plt.xlabel('深度價內賣權成交價報酬率', fontsize=20)
+plt.ylabel('深度價內賣權成交量變化率', fontsize=20)
+plt.grid(True)
+
+# 指定保存路徑
+save_path = "C:/Users/ASUS/Desktop/散佈圖/作業/選擇權成交價與成交量變化率.png"
+plt.savefig(save_path)
